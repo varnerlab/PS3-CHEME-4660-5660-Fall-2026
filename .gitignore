@@ -1,0 +1,13 @@
+docs/build/
+__pycache__/
+.DS_Store
+
+# Generated checker and release artifacts
+results/
+MANIFEST.txt
+dist/
+instructor/output/
+instructor/validation/*.log
+
+# Keep reference solutions and numerical answers out of the public repository.
+instructor/

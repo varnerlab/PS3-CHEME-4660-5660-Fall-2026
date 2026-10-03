@@ -1,0 +1,338 @@
+% PS3 mathematical companion. Build with make in this directory.
+% The study order follows the assignment README; no reference results appear here.
+\documentclass[aspectratio=169,11pt]{beamer}
+\usepackage{vnslides}
+\newcommand{\bw}{\mathbf{w}}
+\newcommand{\bone}{\mathbf{1}}
+\newcommand{\Sg}{\widehat{\boldsymbol{\Sigma}}_g}
+\newcommand{\ghat}{\widehat{\mathbf{g}}}
+\newcommand{\Var}{\operatorname{Var}}
+\newcommand{\Cov}{\operatorname{Cov}}
+\title{\texorpdfstring{{\vnheavy PS3}}{PS3}: Estimation Windows and Portfolio Risk}
+\subtitle{CHEME 4/5660 Cornell University | Mathematical Companion}
+\author{Copyright Jeffrey Varner 2026. All Rights Reserved}
+\begin{document}
+\vntitlepage
+
+\begin{frame}{Disclaimer and Risks}
+\textbf{Training only.} This assignment uses historical prices and simplified
+investment assumptions for teaching. It provides no investment advice.
+
+\vspace{1em}
+\textbf{Short positions.} Borrowed shares must be returned. A rising stock
+price can produce losses larger than the initial short-sale proceeds.
+
+\vspace{1em}
+\textbf{Exercise assumptions.} Fractional shares are allowed. Short-sale
+proceeds finance long holdings. We model borrowing fees, while omitting
+dividends, other trading costs, collateral requirements, and forced liquidation.
+\end{frame}
+
+\begin{frame}{The Portfolio Question}
+Does using more recent data lead to a better portfolio, and does allowing
+short positions help?
+\vspace{0.7em}
+\begin{itemize}\setlength{\itemsep}{0.7em}
+\item \hilite{Choose the allocations.} Compare estimated risk with and without
+short positions, using 2014--2025 and then 2025 alone.
+\item \hilite{Test the holdings.} Evaluate their 2026 wealth and risk, then
+calculate what borrowing the shares costs.
+\item \hilite{Assess the evidence.} Interpret the observed comparison.
+Advanced adds modeled probabilities of beating the benchmark.
+\end{itemize}
+\slidenote{Reading guide}{Studies 1--3 are shared. The final MA-GBM study is Advanced only.}
+\end{frame}
+
+\begin{frame}{Study 1: Change the Estimation Window}
+Keep the eight stocks, purchase date, and optimization rules unchanged.
+\begin{itemize}\setlength{\itemsep}{0.6em}
+\item \hilite{Long history:} all 3,017 prices from 2014--2025, giving
+3,016 consecutive growth observations.
+\item \hilite{Recent history:} first select the 250 prices dated in 2025,
+then calculate 249 growth observations.
+\end{itemize}
+\vspace{0.6em}
+The recent window excludes the change from December 31, 2024 to January 2,
+2025. The long window includes it. Both end at the same purchase prices.
+\slidenote{Comparison}{Choose long-only and shorts-allowed GMV for each window. Equal weight supplies one historical reference.}
+\end{frame}
+
+\begin{frame}{Study 1: Estimate the Growth Rates}
+Within the selected window, let $S_{i,k}$ be stock $i$'s price in USD/share
+at observation $k$, for $i=1,\ldots,8$. With $\Delta t=1/252$ trading year, its growth rate is:
+\[
+ g_{i,k}=\frac{\log(S_{i,k}/S_{i,k-1})}{\Delta t},
+ \qquad k=1,\ldots,n.
+\]
+Use $n=3016$ for 2014--2025 or $n=249$ for 2025 alone. Write
+$\mathbf g_k$ for the growth vector. The sample mean and covariance are:
+\[
+ \ghat=\frac1n\sum_{k=1}^n\mathbf g_k,
+ \qquad
+ \Sg=\frac1{n-1}\sum_{k=1}^n
+ (\mathbf g_k-\ghat)(\mathbf g_k-\ghat)^\top.
+\]
+\slidenote{Units}{Growth is in inverse years; growth-rate covariance is in inverse years squared.}
+\end{frame}
+
+\begin{frame}{Study 1: Choose the Allocations}
+Let $w_i$ be stock $i$'s fraction of initial wealth, and let $\bone$ be the
+vector of eight ones. Both optimized portfolios solve:
+\[
+ \min_{\bw}\;\bw^\top\Sg\bw,
+ \qquad \bone^\top\bw=1.
+\]
+\begin{itemize}\setlength{\itemsep}{0.5em}
+\item \hilite{Long only:} also require $w_i\geq0$ for every stock.
+\item \hilite{Shorts allowed:} permit negative weights, with no position bounds.
+\item \hilite{Equal weight:} use $w_i=1/8$ as the reference allocation.
+\end{itemize}
+\vspace{0.5em}
+Estimated risk is $\widehat\sigma_p=\sqrt{\bw^\top\Sg\bw}$, in inverse years.
+It uses the lecture's linear growth approximation at the initial weights.
+\slidenote{Scope}{No growth target or borrowing cost enters the optimization.}
+\end{frame}
+
+\begin{frame}{Study 1: Solve the Shorts-Allowed Problem}
+For a positive-definite sample covariance $\Sg$ and the vector of ones
+$\bone$, the global minimum-variance allocation is:
+\[
+ \Sg\mathbf x=\bone,
+ \qquad
+ \bw_{\mathrm{shorts}}=\frac{\mathbf x}{\bone^\top\mathbf x}.
+\]
+Solve the linear system for $\mathbf x$; do not explicitly form the inverse.
+In Julia, use \texttt{covariance \textbackslash\ ones(8)}.
+
+\vspace{0.8em}
+Every long-only allocation is feasible when shorts are allowed. The
+shorts-allowed minimum estimated variance therefore cannot be larger.
+
+\vspace{0.8em}
+That conclusion concerns the \hilite{same estimated covariance}. It does
+not guarantee lower realized risk on the 2026 prices.
+\end{frame}
+
+\begin{frame}{Study 1: Why Might a Volatile Stock Be Shorted?}
+For fixed initial weights, define the weighted growth of the long positions
+as $G_+$ and the growth of the shares owed as $G_-$:
+\[
+ G_+=\sum_{i:w_i>0}w_i g_i,
+ \qquad G_-=\sum_{i:w_i<0}|w_i|g_i.
+\]
+The portfolio's linear growth approximation is $G_+-G_-$. Its variance is:
+\[
+ \Var(G_+-G_-)=\Var(G_+)+\Var(G_-)
+              -\underbrace{2\Cov(G_+,G_-)}_{\text{offsetting movement}}.
+\]
+Positive covariance provides an offset, while the short positions also
+contribute their own variance. \hilite{Individual volatility alone does
+not establish whether a short is a useful hedge.}
+\end{frame}
+
+\begin{frame}{Study 1: Interpret the Financing}
+For weights $w_i$ summing to one, define long exposure $L$, short exposure
+$H$, and gross exposure $E$, all relative to initial wealth:
+\[
+ L=\sum_i\max(w_i,0),\qquad
+ H=\sum_i\max(-w_i,0),\qquad E=L+H.
+\]
+The budget constraint gives $L-H=1$. A short finances additional long holdings.
+
+\vspace{0.8em}
+For example, with initial wealth of USD 10,000, $L=1.20$ and $H=0.20$ mean:
+\begin{itemize}\setlength{\itemsep}{0.35em}
+\item USD 12,000 of long holdings;
+\item shares owed initially worth USD 2,000;
+\item USD 14,000 of gross exposure and USD 10,000 of net wealth.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Study 2: Hold the Shares}
+Let $W_0=10{,}000$ USD and $S_{i,0}$ be the December 31, 2025 price.
+The signed share count $q_i$ and wealth before fees are:
+\[
+ q_i=\frac{W_0w_i}{S_{i,0}},
+ \qquad
+ W_k^{\mathrm{gross}}=\sum_i q_i S_{i,k}.
+\]
+A negative $q_i$ represents shares owed. \hilite{Share counts remain fixed}
+through day $N=126$. Weights change with prices.
+
+\vspace{0.8em}
+Day 0 is the final 2025 observation. Day 1 is the first 2026 observation.
+An $N$-day evaluation uses $N+1$ price rows, including day 0.
+\slidenote{Terminology}{Gross wealth means wealth before borrowing fees. Gross exposure measures the magnitude of all positions.}
+\end{frame}
+
+\begin{frame}{Study 2: Measure Realized Risk}
+For positive gross wealth at every observation, define the portfolio's
+realized growth $g_{p,k}$ and its average $\bar g_p$ over $N$ intervals:
+\[
+ g_{p,k}=\frac{\log(W_k^{\mathrm{gross}}/W_{k-1}^{\mathrm{gross}})}{\Delta t},
+ \qquad
+ \bar g_p=\frac1N\sum_{k=1}^N g_{p,k}.
+\]
+The realized growth-rate standard deviation is:
+\[
+ \sigma_{p,\mathrm{realized}}
+ =\sqrt{\frac1{N-1}\sum_{k=1}^N(g_{p,k}-\bar g_p)^2}.
+\]
+Report it in inverse years, using wealth \hilite{before fees}. If gross
+wealth is ever nonpositive, this log-growth measure is unavailable.
+\end{frame}
+
+\begin{frame}{Study 2: Separate Profit from Hedging}
+For signed share count $q_i$ and sale day $N$, stock $i$'s dollar gain or
+loss, $\Pi_i$, is:
+\[
+ \Pi_i=q_i(S_{i,N}-S_{i,0}),
+ \qquad
+ \Pi_{\mathrm{short}}=\sum_{i:q_i<0}\Pi_i.
+\]
+A short gains when its price falls and loses when its price rises.
+
+\vspace{0.8em}
+Compare \hilite{terminal wealth} and \hilite{realized risk} separately. A
+short can lose money while offsetting fluctuations in the long holdings.
+
+\vspace{0.8em}
+The two optimized portfolios also have different long positions. Their
+performance difference cannot be attributed entirely to the shorts.
+\end{frame}
+
+\begin{frame}{Study 2: Accumulate Borrowing Fees}
+Let $B_k$ be the market value of the shares owed at the start of interval
+$k$, in USD. For annual borrowing rate $b$, total fees through day $N$ are:
+\[
+ B_k=\sum_{i:q_i<0}|q_i|S_{i,k},
+ \qquad
+ C_N(b)=b\Delta t\sum_{k=0}^{N-1}B_k.
+\]
+Use $b=0$ and $b=0.03$ with the same holdings and price path.
+\begin{itemize}\setlength{\itemsep}{0.5em}
+\item Charge on beginning-of-interval values; exclude the sale-day value.
+\item Accrue fees without interest and pay them at liquidation.
+\item Portfolios without short positions owe zero fees.
+\end{itemize}
+\slidenote{Convention}{These are illustrative annual rates using 252 trading days per year.}
+\end{frame}
+
+\begin{frame}{Study 2: Net Wealth and Benchmark Success}
+Net terminal wealth is gross wealth less borrowing fees. For benchmark
+rate $g_y=0.05$ per trading year and holding time $T=N\Delta t$, define:
+\[
+ W_N^{\mathrm{net}}=W_N^{\mathrm{gross}}-C_N(b),
+ \qquad W_N^{\mathrm{benchmark}}=W_0 e^{g_yT}.
+\]
+Scaled net present value $\rho_N$ discounts the proceeds to day 0 and
+compares them with the initial investment:
+\[
+ \rho_N=\underbrace{\frac{W_N^{\mathrm{net}}}{W_0}}_{\text{wealth ratio}}
+       \underbrace{e^{-g_yT}}_{\text{discount factor}}-1.
+\]
+Success means $\rho_N>0$. Equality does not count. Increasing the fee
+reduces net wealth while leaving the holdings and risk before fees unchanged.
+\end{frame}
+
+\begin{frame}{Study 3: Interpret the Window Comparison}
+Each window estimates its own covariance. Its GMV allocation minimizes
+variance under \hilite{that estimate}. Mean growth does not affect these
+weights because there is no growth target.
+
+\vspace{0.8em}
+Compare all four allocations on the same 126-day 2026 price history.
+Use realized risk and net wealth to assess what carried over.
+
+\vspace{0.8em}
+Changing the window changes both sample size and recency. One shared market
+episode cannot establish which window or shorting rule will always work best.
+\end{frame}
+
+\begin{frame}{Advanced: Construct the MA-GBM Model}
+Fit one model to each window. For its mean growth $\ghat$ and covariance
+$\Sg$, define diffusion covariance $D$, its lower Cholesky factor $A$,
+and price drift $\mu_i$ by:
+\[
+ D=\Delta t\Sg,\qquad AA^\top=D,\qquad
+ \mu_i=\hat g_i+\tfrac12D_{ii}.
+\]
+With independent standard Brownian motions $W_j(t)$, stock $i$ follows:
+\[
+ \frac{dS_i(t)}{S_i(t)}=\mu_i\,dt+\sum_{j=1}^8 A_{ij}\,dW_j(t).
+\]
+$D$ has units of inverse years; $A$ has units of inverse square-root years.
+Keep the benchmark out of the fitted price drifts.
+\end{frame}
+
+\begin{frame}{Advanced: Simulate Joint Price Paths}
+At interval $k$, draw an eight-component standard normal vector
+$\mathbf z_k$ with independent components. Its mean is zero and covariance
+is the identity matrix. The exact daily MA-GBM update is:
+\[
+ \log\!\left(\frac{\mathbf S_{k+1}}{\mathbf S_k}\right)
+ =\ghat\Delta t+A\sqrt{\Delta t}\,\mathbf z_k.
+\]
+Ratios and logarithms are componentwise. Use independent draws across days
+and paths. The matrix $A$ introduces the fitted cross-stock dependence.
+
+\vspace{0.8em}
+Generate 20,000 paths through day 126 per model. Within each model, share
+price paths across portfolios and fees. Across models, reuse the normal
+draws; each fitted model transforms them into different price paths.
+\slidenote{Interpretation}{These forecasts use historical fitted drifts. They are not risk-neutral prices.}
+\end{frame}
+
+\begin{frame}{Advanced: Estimate the Success Probability}
+Let $s$ index the $K=20{,}000$ simulated paths. On each path, calculate
+net wealth using the fixed shares and that path's borrowing fees. Then:
+\[
+ \hat p_N(b)=\frac1K\sum_{s=1}^K
+ \mathbf1\!\left[W_{N,s}^{\mathrm{net}}(b)>W_0e^{g_yN\Delta t}\right].
+\]
+The indicator is one for success and zero otherwise. Keep every path in
+the denominator, including nonpositive wealth outcomes.
+
+\vspace{0.8em}
+A signed sum of lognormal asset prices is generally not lognormal. Compute
+wealth from the joint asset paths. Under our no-forced-liquidation assumption,
+retain the holdings through the sale day even if wealth crosses zero earlier.
+\end{frame}
+
+\begin{frame}{Advanced: Interpret the Probability Estimate}
+For estimated success probability $\hat p_N$ based on $K$ independent paths,
+the Monte Carlo standard error is:
+\[
+ \operatorname{SE}(\hat p_N)=\sqrt{\frac{\hat p_N(1-\hat p_N)}{K}}.
+\]
+Multiply by 100 to report it in percentage points.
+
+\vspace{0.7em}
+A small standard error means the simulation estimates the \hilite{fitted
+model's probability} precisely. It does not establish that the model or
+its estimated parameters describe future prices correctly.
+
+\vspace{0.7em}
+Using common paths, a higher borrowing rate cannot raise the estimated
+success probability. It may leave the estimate unchanged if no outcome
+crosses the benchmark threshold.
+\end{frame}
+
+\begin{frame}{Summary}
+The studies compare two estimation windows on one common 2026 episode,
+with and without short positions and borrowing fees.
+
+\vspace{0.6em}
+\textbf{Key takeaways}
+\begin{itemize}\setlength{\itemsep}{0.55em}
+\item Covariance determines whether short positions help offset portfolio
+fluctuations; individual volatility alone is insufficient.
+\item Lower estimated variance does not guarantee lower realized risk or
+more terminal wealth. Borrowing fees reduce the proceeds.
+\item MA-GBM supplies a model-based success probability. Simulation precision
+and forecast accuracy are different questions.
+\end{itemize}
+\vspace{0.6em}
+Use these distinctions to answer the central portfolio question in PS3.
+\end{frame}
+\end{document}

@@ -1,0 +1,124 @@
+# PS3 Standard: Complete the four functions below.
+# Keep the function names, arguments, return types, and docstrings.
+# The checker supplies valid inputs. Input validation is not student work.
+# The same functions handle either estimation window and any valid small test input.
+# Run: julia --project=. --startup-file=no check_submission.jl
+
+"""
+    estimate_inputs(prices::Matrix{Float64}, dt::Float64) -> NamedTuple
+
+Estimate growth rates and their sample moments from the supplied price window.
+
+### Arguments
+- `prices`: Positive prices in USD/share. Rows are consecutive observations
+  from oldest to newest, columns are stocks. There are at least three rows.
+  The supplied loader selects the window before this function is called.
+- `dt`: Positive interval between prices in trading years, normally `1/252`.
+
+### Returns
+A named tuple `(growth=G, mean=m, covariance=C)` containing a growth matrix
+with one fewer row than `prices`, a vector of column means, and the sample
+covariance matrix. Growth is expressed per year and covariance per year squared.
+
+### Method
+Use consecutive log price ratios divided by `dt`. Calculate column means
+and sample covariance with observations in rows (`dims=1`, `corrected=true`).
+Use all changes inside the supplied matrix. Do not select dates here or
+subtract a benchmark rate. Return `mean` as a vector, not a one-row matrix.
+"""
+function estimate_inputs(prices::Matrix{Float64}, dt::Float64)::NamedTuple
+    # TODO: Calculate growth, its column means, and its sample covariance.
+    error("Complete estimate_inputs in your selected source file.");
+end
+
+"""
+    minimum_variance_weights(parameters::NamedTuple; allow_shorts::Bool=false)
+        -> Vector{Float64}
+
+Choose the minimum-variance allocation for a positive-definite covariance.
+
+### Arguments
+- `parameters`: Contains a mean vector `mean` and a matrix `covariance`
+  in the units returned by `estimate_inputs`.
+- `allow_shorts`: If false, all weights are nonnegative. If true, negative
+  weights are allowed without position bounds.
+
+### Returns
+A vector of portfolio weights summing to one, in the input stock order.
+The objective includes neither borrowing fees nor a growth target.
+
+### Method
+For long-only weights, use `build(MyMarkowitzRiskyAssetOnlyPortfolioChoiceProblem,
+(Σ=C, μ=m, bounds=bounds, R=floor, initial=initial))` and `solve(problem)`.
+Set each row of `bounds` to `[0.0, 1.0]`, use equal initial weights, and set
+`floor` below the smallest fitted mean so the package's growth constraint
+is redundant. The returned dictionary stores weights at `"argmax"`.
+
+For shorts-allowed weights, use the L6a closed-form solution evaluated with
+a linear solve. Do not replace unbounded shorts with large finite bounds.
+
+For long-only solver roundoff only, set weights with absolute value below
+`1e-6` to zero and renormalize. Do not clip meaningful negative weights in
+the shorts-allowed solution. The report ignores exposures below `1e-6`.
+"""
+function minimum_variance_weights(parameters::NamedTuple;
+    allow_shorts::Bool=false)::Vector{Float64}
+    # TODO: Select the course solver or the unrestricted linear solve.
+    error("Complete minimum_variance_weights in your selected source file.");
+end
+
+"""
+    portfolio_path(prices::Matrix{Float64}, weights::Vector{Float64},
+        initial_wealth::Float64) -> NamedTuple
+
+Convert an allocation to fixed signed share counts and calculate gross wealth.
+
+### Arguments
+- `prices`: Positive prices with day 0 in row 1. Later rows are successive
+  observations. Columns have the same order as `weights`.
+- `weights`: Initial portfolio weights summing to one. Negative weights
+  represent short positions financed through borrowed shares.
+- `initial_wealth`: Positive initial investment in USD.
+
+### Returns
+A named tuple `(shares=q, wealth=W)`. The signed share vector `q` stays fixed.
+The gross wealth vector `W` contains one value per price row, including day 0.
+
+### Method
+Allocate initial wealth using the weights and divide by day-0 prices to get
+shares. Calculate wealth from those fixed shares at every observation.
+Do not rebalance, subtract fees, clip negative wealth, or liquidate early.
+"""
+function portfolio_path(prices::Matrix{Float64}, weights::Vector{Float64},
+    initial_wealth::Float64)::NamedTuple
+    # TODO: Calculate signed shares once and value them along the price path.
+    error("Complete portfolio_path in your selected source file.");
+end
+
+"""
+    borrowing_costs(prices::Matrix{Float64}, shares::Vector{Float64},
+        annual_rate::Float64, dt::Float64) -> Float64
+
+Accumulate borrowing fees on fixed short holdings without charging interest.
+
+### Arguments
+- `prices`: Positive prices, including day 0 in row 1 and liquidation in
+  the final row. Columns have the same order as `shares`.
+- `shares`: Fixed signed shares. Only negative shares incur borrowing fees.
+- `annual_rate`: Nonnegative annual fee rate, `0.0` or `0.03` in the study.
+- `dt`: Positive interval length in trading years.
+
+### Returns
+The total fee in USD, settled at liquidation. Return zero when there are no
+shorts or the rate is zero. Do not change the share counts or price matrix.
+
+### Method
+Charge the value of shares owed at the beginning of each interval. For a
+127-row path, use rows 1 through 126. Exclude the liquidation row. Multiply
+short exposure by the annual rate and `dt`, then sum the interval fees.
+"""
+function borrowing_costs(prices::Matrix{Float64}, shares::Vector{Float64},
+    annual_rate::Float64, dt::Float64)::Float64
+    # TODO: Sum beginning-of-interval fees on shares owed.
+    error("Complete borrowing_costs in your selected source file.");
+end
