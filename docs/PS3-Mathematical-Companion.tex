@@ -40,20 +40,20 @@ calculate what borrowing the shares costs.
 \item \hilite{Assess the evidence.} Interpret the observed comparison.
 Advanced adds modeled probabilities of beating the benchmark.
 \end{itemize}
-\slidenote{Reading guide}{Studies 1--3 are shared. The final MA-GBM study is Advanced only.}
+\slidenote{Reading guide}{Studies 1--3 are shared. The final MAGBM study is Advanced only.}
 \end{frame}
 
 \begin{frame}{Study 1: Change the Estimation Window}
 Keep the eight stocks, purchase date, and optimization rules unchanged.
 \begin{itemize}\setlength{\itemsep}{0.6em}
-\item \hilite{Long history:} all 3,017 prices from 2014--2025, giving
+\item \hilite{2014--2025 window:} all 3,017 prices from 2014--2025, giving
 3,016 consecutive growth observations.
-\item \hilite{Recent history:} first select the 250 prices dated in 2025,
+\item \hilite{2025 window:} first select the 250 prices dated in 2025,
 then calculate 249 growth observations.
 \end{itemize}
 \vspace{0.6em}
-The recent window excludes the change from December 31, 2024 to January 2,
-2025. The long window includes it. Both end at the same purchase prices.
+The 2025 window excludes the change from December 31, 2024 to January 2,
+2025. The 2014--2025 window includes it. Both end at the same purchase prices.
 \slidenote{Comparison}{Choose long-only and shorts-allowed GMV for each window. Equal weight supplies one historical reference.}
 \end{frame}
 
@@ -90,7 +90,7 @@ vector of eight ones. Both optimized portfolios solve:
 \vspace{0.5em}
 Estimated risk is $\widehat\sigma_p=\sqrt{\bw^\top\Sg\bw}$, in inverse years.
 It uses the lecture's linear growth approximation at the initial weights.
-\slidenote{Scope}{No growth target or borrowing cost enters the optimization.}
+\slidenote{Scope}{Add no growth target or borrowing fee. The supplied long-only floor $R=\min_i\hat g_i$ excludes no allocation.}
 \end{frame}
 
 \begin{frame}{Study 1: Solve the Shorts-Allowed Problem}
@@ -238,10 +238,10 @@ reduces net wealth while leaving the holdings and risk before fees unchanged.
 \begin{frame}{Study 3: Interpret the Window Comparison}
 Each window estimates its own covariance. Its GMV allocation minimizes
 variance under \hilite{that estimate}. Mean growth does not affect these
-weights because there is no growth target.
+weights because no growth target binds.
 
 \vspace{0.8em}
-Compare all four allocations on the same 126-day 2026 price history.
+Compare all four allocations over the same 126 trading days of 2026.
 Use realized risk and net wealth to assess what carried over.
 
 \vspace{0.8em}
@@ -249,26 +249,26 @@ Changing the window changes both sample size and recency. One shared market
 episode cannot establish which window or shorting rule will always work best.
 \end{frame}
 
-\begin{frame}{Advanced: Construct the MA-GBM Model}
-Fit one model to each window. For its mean growth $\ghat$ and covariance
-$\Sg$, define diffusion covariance $D$, its lower Cholesky factor $A$,
-and price drift $\mu_i$ by:
+\begin{frame}{Advanced: Construct the MAGBM Model}
+Fit one model to each window. From its $\ghat$ and $\Sg$, define the covariance
+rate $\widehat C$ (\texttt{Ĉ} in the starter code), its lower Cholesky factor $A$,
+and the price drift $\mu_i$:
 \[
- D=\Delta t\Sg,\qquad AA^\top=D,\qquad
- \mu_i=\hat g_i+\tfrac12D_{ii}.
+ \widehat C=\Delta t\Sg,\qquad AA^\top=\widehat C,\qquad
+ \mu_i=\hat g_i+\tfrac12\widehat C_{ii}.
 \]
 With independent standard Brownian motions $W_j(t)$, stock $i$ follows:
 \[
  \frac{dS_i(t)}{S_i(t)}=\mu_i\,dt+\sum_{j=1}^8 A_{ij}\,dW_j(t).
 \]
-$D$ has units of inverse years; $A$ has units of inverse square-root years.
+$\widehat C$ has units of inverse years; $A$ has units of inverse square-root years.
 Keep the benchmark out of the fitted price drifts.
 \end{frame}
 
 \begin{frame}{Advanced: Simulate Joint Price Paths}
 At interval $k$, draw an eight-component standard normal vector
 $\mathbf z_k$ with independent components. Its mean is zero and covariance
-is the identity matrix. The exact daily MA-GBM update is:
+is the identity matrix. The exact daily MAGBM update is:
 \[
  \log\!\left(\frac{\mathbf S_{k+1}}{\mathbf S_k}\right)
  =\ghat\Delta t+A\sqrt{\Delta t}\,\mathbf z_k.
@@ -329,7 +329,7 @@ with and without short positions and borrowing fees.
 fluctuations; individual volatility alone is insufficient.
 \item Lower estimated variance does not guarantee lower realized risk or
 more terminal wealth. Borrowing fees reduce the proceeds.
-\item MA-GBM supplies a model-based success probability. Simulation precision
+\item MAGBM supplies a model-based success probability. Simulation precision
 and forecast accuracy are different questions.
 \end{itemize}
 \vspace{0.6em}

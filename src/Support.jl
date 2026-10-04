@@ -34,13 +34,33 @@ function load_price_file(path::AbstractString)::NamedTuple
 end
 
 """
+    course_dataset(prices, tickers; dates) -> Dict{String,DataFrame}
+
+Arrange the supplied CSV prices as the ticker-keyed DataFrames used in L6a.
+Columns are timestamp and volume_weighted_average_price. The caller selects
+price rows first; this conversion does not filter dates or compute growth.
+"""
+function course_dataset(prices::Array{Float64,2}, tickers::Array{String,1};
+    dates::Array{Date,1})::Dict{String,DataFrame}
+    size(prices) == (length(dates),length(tickers)) ||
+        throw(DimensionMismatch("Dates and tickers must match the price matrix."));
+    dataset = Dict{String,DataFrame}();
+    for (i,ticker) ∈ enumerate(tickers)
+        dataset[ticker] = DataFrame(timestamp=copy(dates),
+            volume_weighted_average_price=prices[:,i]);
+    end
+    return dataset;
+end
+
+"""
     load_experiment(root) -> NamedTuple
 
 Load the two estimation windows and the 127-row evaluation path. Select 2025
 price rows before any student growth calculation. Prepend December 31, 2025
 to the first 126 observations of 2026. Later observations are not used.
 Return `(windows, dates, prices, tickers)`. Each window has `label`, `dates`,
-and `prices`; the outer dates and prices describe the common evaluation.
+and `prices`, plus the course-format `dataset`; the outer dates and prices
+describe the common evaluation.
 """
 function load_experiment(root::AbstractString)::NamedTuple
     training = load_price_file(joinpath(root, "data", "portfolio-2014-2025.csv"));
@@ -56,6 +76,8 @@ function load_experiment(root::AbstractString)::NamedTuple
     count(recent) == 250 || error("Expected 250 recent prices.");
     windows = [(label="2014-2025", dates=training.dates, prices=training.prices),
         (label="2025", dates=training.dates[recent], prices=training.prices[recent, :])];
+    windows = [merge(window, (dataset=course_dataset(window.prices,training.tickers;
+        dates=window.dates),)) for window in windows];
     prices = vcat(training.prices[end:end, :], observed.prices[1:PS3_DAYS, :]);
     dates = vcat(training.dates[end], observed.dates[1:PS3_DAYS]);
     return (windows=windows, dates=dates, prices=prices, tickers=training.tickers);
@@ -74,44 +96,40 @@ function realized_risk(wealth::AbstractVector, dt::Real)
 end
 
 """
-    simulate_paths(model, initial_prices, days, paths, dt; seed=PS3_SEED) -> Array
+    simulate_paths(model, S₀, days, number_of_paths, Δt; seed=PS3_SEED) -> Dict
 
-Generate exact multiple-asset GBM prices with dimensions time × stock × path,
-including initial prices in row 1. The model supplies `drift`, `diffusion`,
-and `factor`. Use the same seed for both fitted models to reuse standard
-normal innovations. No global random state is changed. One bank is shared
-across all allocations and fee rates within each model.
+Call the course sampler exactly as in Task 1 of the L6a portfolio simulation
+example. Return a dictionary: path number => matrix with time in column 1
+and stock prices in columns 2:end. Row 1 is day 0.
 
-Only one model's price bank is needed at a time. At the assignment settings
-its storage is about 155 MiB. Work arrays for innovations contain one path.
+Reset the random seed before each fitted model so both use the same standard
+normal draws. All portfolios and fees reuse this dictionary within a model.
 """
-function simulate_paths(model::NamedTuple, initial_prices::Vector{Float64},
-    days::Int, paths::Int, dt::Float64; seed::Int=PS3_SEED)::Array{Float64,3}
-    days > 0 && paths > 0 && dt > 0 || throw(ArgumentError("Positive simulation sizes required."));
-    n = length(initial_prices);
-    length(model.drift) == n && size(model.diffusion) == size(model.factor) == (n,n) ||
+function simulate_paths(model::MyMultipleAssetGeometricBrownianMotionEquityModel,
+    S₀::Array{Float64,1}, days::Int64, number_of_paths::Int64,
+    Δt::Float64; seed::Int64=PS3_SEED)::Dict{Int64,Array{Float64,2}}
+    days > 0 && number_of_paths > 0 && Δt > 0 ||
+        throw(ArgumentError("Positive simulation sizes required."));
+    M = length(S₀);
+    length(model.μ)==M && size(model.A)==(M,M) ||
         throw(DimensionMismatch("Model dimensions do not match the stock prices."));
-    all(isfinite, model.drift) && all(isfinite, model.factor) && all(isfinite, model.diffusion) ||
-        error("Model parameters must be finite.");
-    isapprox(model.factor * model.factor', model.diffusion; atol=1e-9, rtol=1e-7) ||
-        error("The model factor must satisfy A*A' = diffusion.");
-    all(x -> isfinite(x) && x > 0, initial_prices) || error("Initial prices must be positive.");
-    rng = MersenneTwister(seed); # reset per fitted window, so innovations agree across models
-    bank = Array{Float64}(undef, days+1, n, paths);
-    normal = Matrix{Float64}(undef, n, days);
-    increments = similar(normal);
-    log_drift = (model.drift .- diag(model.diffusion)./2) .* dt;
-    for path in 1:paths
-        randn!(rng, normal);
-        mul!(increments, model.factor, normal);
-        bank[1, :, path] = initial_prices;
-        for day in 1:days, stock in 1:n
-            bank[day+1, stock, path] = bank[day, stock, path] *
-                exp(log_drift[stock] + sqrt(dt)*increments[stock, day]);
-        end
+    all(isfinite,model.μ) && all(isfinite,model.A) || error("Model parameters must be finite.");
+    all(x -> isfinite(x) && x > 0,S₀) || error("Initial prices must be positive.");
+
+    # Use the same model, sampler call, and output type as the course example -
+    T₁ = 0.0;
+    T₂ = days*Δt;
+    Random.seed!(seed);
+    simulation_dictionary = VLQuantitativeFinancePackage.sample(model,
+        (Sₒ = S₀, T₁ = T₁, T₂ = T₂, Δt = Δt),
+        number_of_paths = number_of_paths);
+
+    for prices in values(simulation_dictionary)
+        size(prices)==(days+1,M+1) || error("Unexpected simulated path dimensions.");
+        all(x -> isfinite(x) && x > 0,prices[:,2:end]) ||
+            error("Simulated prices overflowed or underflowed.");
     end
-    all(x -> isfinite(x) && x > 0, bank) || error("Simulated prices overflowed or underflowed.");
-    return bank;
+    return simulation_dictionary;
 end
 
 """
@@ -122,17 +140,17 @@ Return gross and net terminal wealth vectors and the number of gross paths
 that touched zero or became negative. Retain every outcome and fixed holding
 through liquidation. The zero-fee comparison uses the same gross vector.
 """
-function simulated_outcomes(bank::Array{Float64,3}, weights::Vector{Float64},
+function simulated_outcomes(bank::Dict{Int64,Array{Float64,2}}, weights::Vector{Float64},
     wealth::Float64, annual_rate::Float64, dt::Float64)::NamedTuple
-    paths = size(bank,3);
+    paths = length(bank);
     gross, net = zeros(paths), zeros(paths);
     nonpositive = 0;
     for path in 1:paths
-        prices = bank[:, :, path]; # concrete matrix matches the student function contract
-        holdings = portfolio_path(prices, weights, wealth);
-        gross[path] = holdings.wealth[end];
-        net[path] = gross[path] - borrowing_costs(prices, holdings.shares, annual_rate, dt);
-        nonpositive += any(<=(0), holdings.wealth);
+        prices = bank[path][:,2:end]; # drop the time column, as in the course notebook
+        shares, W = portfolio_path(prices, weights, wealth);
+        gross[path] = W[end];
+        net[path] = gross[path] - borrowing_costs(prices, shares, annual_rate, dt);
+        nonpositive += any(<=(0), W);
     end
     all(isfinite, gross) && all(isfinite, net) || error("Simulated wealth must remain finite.");
     return (gross=gross, net=net, nonpositive=nonpositive);

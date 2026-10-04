@@ -26,8 +26,9 @@ for evaluation, not an additional 2026 observation. Estimate all inputs and
 select all allocations using only this file. For the recent window, first
 select its 250 rows dated in 2025, then calculate 249 growth observations
 with sample covariance divisor 248. This window excludes the change from
-December 31, 2024 to January 2, 2025. The supplied loader selects the
-rows; the student estimation function works on either matrix.
+December 31, 2024 to January 2, 2025. The supplied loader selects each
+window's rows and arranges them as price tables keyed by ticker. Your
+`estimate_inputs` function receives the same kind of input for either window.
 
 The first 2026 row is day 1. The 126th observation is **July 6, 2026**.
 Include day 0 when forming the evaluation path, giving 127 price rows and 126 trading intervals.

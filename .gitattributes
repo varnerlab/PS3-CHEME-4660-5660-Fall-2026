@@ -1,0 +1,3 @@
+# Keep instructor material and agent notes out of the student source archives.
+instructor/ export-ignore
+AGENTS.md export-ignore

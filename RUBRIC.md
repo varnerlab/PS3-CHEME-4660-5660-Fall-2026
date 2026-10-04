@@ -42,27 +42,29 @@ every check to pass and all completion requirements to be met.
 
 ## Requirements for a 4
 
-- **Estimation:** Compare the full 2014–2025 window with 2025 alone. Select
+- **Estimation:** Compare the 2014–2025 window with the 2025 window. Select
   price rows before calculating growth rates; use no 2026 data in estimation.
   Preserve ticker order and use the stated time units and sample covariance convention.
-- **Optimization:** Construct both minimum-variance allocations with the
-  specified constraints. Include no borrowing fee or growth target in the
-  objective or constraints. Do not alter weights using 2026 results.
+- **Optimization:** Construct both GMV allocations with the specified
+  constraints. Add no borrowing fee or growth target. Keep the supplied
+  long-only growth floor, which equals the smallest mean growth rate and
+  excludes no long-only allocation. Do not alter weights using 2026 results.
 - **Evaluation:** Hold signed share counts fixed. Calculate wealth and
   beginning-of-interval borrowing fees correctly over 126 trading days
   at 0% and 3%. Apply the benchmark to net terminal wealth and use strict inequality for success.
-- **Advanced:** Construct MA-GBM with correctly scaled covariance and price
+- **Advanced:** Construct MAGBM with correctly scaled covariance and price
   drifts. Calculate success probabilities from joint asset-price paths,
   keeping all outcomes in the denominator and reusing price paths within each
   fitted model and standard normal draws across models.
 - **Documentation:** Keep the supplied docstrings. Document each helper's
   purpose, inputs, and output, and comment non-obvious steps. Load helper
   files under `src` through `Include.jl`.
-- **Written work:** Answer all three questions in the selected response
-  file with the requested numbers, units, and reasoning. Include an
-  estimation-window prediction and its reconsideration. Interpret supplied tables rather than
-  reproducing them. Distinguish estimated risk, realized
-  risk, terminal wealth, and, for Advanced, modeled success probability.
+- **Written work:** Answer every lettered part of all three questions in
+  the selected response file with the requested numbers, units, and
+  reasoning. Include an estimation-window prediction and its
+  reconsideration. Cite selected values rather than reproducing the tables.
+  Distinguish estimated risk, realized risk, terminal wealth, and, for
+  Advanced, modeled success probability.
 - **Finished work:** Remove completed TODOs and starter errors from the
   selected track's source and response files. Leave the other track unchanged.
 

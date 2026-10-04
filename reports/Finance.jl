@@ -10,7 +10,9 @@ function report_attempt(f::Function, label::String, issues::Vector{String})
 end
 
 """Validate estimated array shapes and finite entries before constructing dependent tables."""
-function checked_estimates(p::NamedTuple, rows::Int, stocks::Int)
+function checked_estimates(result::Tuple, rows::Int, stocks::Int)
+    G, ĝ, Σ̂_g = result;
+    p = (growth=G,mean=ĝ,covariance=Σ̂_g);
     size(p.growth)==(rows-1,stocks) && length(p.mean)==stocks &&
         size(p.covariance)==(stocks,stocks) || error("Estimation returned unexpected dimensions.");
     all(isfinite,p.growth) && all(isfinite,p.mean) && all(isfinite,p.covariance) ||
@@ -28,7 +30,8 @@ end
 
 """Return one fixed-holdings historical record using the student's wealth and fee functions."""
 function historical_record(prices::Matrix{Float64}, weights::Vector{Float64})
-    path = portfolio_path(prices,weights,PS3_WEALTH);
+    shares, W = portfolio_path(prices,weights,PS3_WEALTH);
+    path = (shares=shares,wealth=W);
     length(path.shares)==size(prices,2) && length(path.wealth)==size(prices,1) ||
         error("Holdings returned unexpected dimensions.");
     all(isfinite,path.shares) && all(isfinite,path.wealth) || error("Holdings must be finite.");
@@ -43,7 +46,7 @@ function historical_record(prices::Matrix{Float64}, weights::Vector{Float64})
         short_pnl=pnl, scaled_npv=net/target-1, success=net>target, zero_success=gross>target);
 end
 
-"""Calculate table records while keeping unavailable student calculations local to their dependencies."""
+"""Build each table whose required student calculations are available; mark the others UNAVAILABLE."""
 function finance_tables(track::AbstractString, root::AbstractString;
     paths::Int=PS3_PATHS, seed::Int=PS3_SEED)::NamedTuple
     data = load_experiment(root);
@@ -52,14 +55,14 @@ function finance_tables(track::AbstractString, root::AbstractString;
         ("window-inputs","allocations","observed","fees","stock-risk","short-diagnostics","probabilities","wealth-paths"));
     timings = NamedTuple[];
     equal = fill(1/8,8);
-    eq_history = report_attempt("Equal-weight history",issues) do
+    eq_history = report_attempt("Equal-weight 2026 evaluation",issues) do
         historical_record(data.prices,equal);
     end
     # Add one common historical reference, independent of the fitted window -
     add_history!(tables,"reference","equal_weight",eq_history,data.dates);
     for window in data.windows
         parameters = report_attempt("$(window.label) estimation",issues) do
-            checked_estimates(estimate_inputs(copy(window.prices),PS3_DT),size(window.prices,1),8);
+            checked_estimates(estimate_inputs(deepcopy(window.dataset),copy(data.tickers); Δt=PS3_DT),size(window.prices,1),8);
         end
         eqrisk = parameters === nothing ? missing : sqrt(max(0.0,dot(equal,parameters.covariance*equal)));
         push!(tables["window-inputs"],(window=window.label,price_rows=size(window.prices,1),
@@ -72,7 +75,7 @@ function finance_tables(track::AbstractString, root::AbstractString;
         allocations = Dict{String,Union{Nothing,Vector{Float64}}}("equal_weight"=>equal);
         for name in ("long_only","shorts_allowed")
             weights = parameters===nothing ? nothing : report_attempt("$(window.label) $name allocation",issues) do
-                checked_weights(minimum_variance_weights(deepcopy(parameters);allow_shorts=name=="shorts_allowed"),8,name=="shorts_allowed");
+                checked_weights(minimum_variance_weights(copy(parameters.mean),copy(parameters.covariance);allow_shorts=name=="shorts_allowed"),8,name=="shorts_allowed");
             end
             allocations[name] = weights;
             risk = weights===nothing ? missing : sqrt(max(0.0,dot(weights,parameters.covariance*weights)));
@@ -80,7 +83,7 @@ function finance_tables(track::AbstractString, root::AbstractString;
             holdings = weights===nothing ? fill(missing,8) : weights;
             push!(tables["allocations"],merge((window=window.label,portfolio=name,estimated_risk=risk,
                 short_exposure=exposure),NamedTuple{Tuple(Symbol.(data.tickers))}(Tuple(holdings))));
-            history = weights===nothing ? nothing : report_attempt("$(window.label) $name history",issues) do
+            history = weights===nothing ? nothing : report_attempt("$(window.label) $name 2026 evaluation",issues) do
                 historical_record(data.prices,weights);
             end
             add_history!(tables,window.label,name,history,data.dates);
@@ -130,13 +133,13 @@ end
 function simulation_report!(tables,timings,issues,window,parameters,allocations,initial,paths,seed)
     started = time();
     model = parameters===nothing ? nothing : report_attempt("$(window.label) price model",issues) do
-        build_magbm(deepcopy(parameters),PS3_DT);
+        build_magbm(copy(parameters.mean),copy(parameters.covariance); Δt=PS3_DT);
     end
     # Avoid generating a large bank while required student functions are still stubs -
     ready = model===nothing ? nothing : report_attempt("$(window.label) simulation prerequisites",issues) do
         probe = reshape(repeat(initial,3),8,3)' |> Matrix;
-        h = portfolio_path(probe,fill(1/8,8),PS3_WEALTH);
-        borrowing_costs(probe,h.shares,0.03,PS3_DT);
+        shares, W = portfolio_path(probe,fill(1/8,8),PS3_WEALTH);
+        borrowing_costs(probe,shares,0.03,PS3_DT);
         benchmark_probability([PS3_WEALTH],PS3_WEALTH,PS3_BENCHMARK,PS3_DAYS,PS3_DT);
         true;
     end
@@ -159,7 +162,7 @@ function simulation_report!(tables,timings,issues,window,parameters,allocations,
             se_zero=v(:se0),se_three_percent=v(:se3),fee_change_percentage_points=v(:delta),
             nonpositive_gross_paths=v(:nonpositive)));
     end
-    push!(timings,(window=window.label,seconds=time()-started,bank_bytes=bank===nothing ? 0 : sizeof(bank)));
+    push!(timings,(window=window.label,seconds=time()-started,bank_bytes=bank===nothing ? 0 : Base.summarysize(bank)));
     return nothing;
 end
 
@@ -175,9 +178,14 @@ function write_table_csv(path::AbstractString, rows::Vector{NamedTuple}, headers
     return nothing;
 end
 
+# Readable portfolio labels for the displayed tables; CSV files keep the identifiers -
+const PORTFOLIO_LABELS = Dict("long_only"=>"long-only","shorts_allowed"=>"shorts-allowed",
+    "equal_weight"=>"equal weight");
+
 """Format table values without rounding the calculations or exported CSV data."""
 function report_cell(x, key::Symbol)::String
     ismissing(x) && return "UNAVAILABLE";
+    key==:portfolio && return get(PORTFOLIO_LABELS,x,string(x));
     x isa Bool && return x ? "yes" : "no";
     x isa AbstractFloat || return string(x);
     key in Symbol.(PS3_TICKERS) || key in (:weight,:short_exposure,:probability_zero,:probability_three_percent,:scaled_npv) ?
@@ -222,7 +230,7 @@ function print_finance_report(track::AbstractString,root::AbstractString;
     end
     io = IOBuffer();
     println(io,"# PS3 $(titlecase(track)) comparison\n");
-    println(io,"Record your Question 1 prediction before inspecting allocation results.\n");
+    println(io,"Write your Question 1a prediction before you read the allocation results.\n");
     println(io,"Hold USD 10,000 from December 31, 2025 through July 6, 2026 (126 trading days).");
     println(io,"Risk is measured before fees in inverse years. Wealth is in USD. The 5% continuous benchmark is USD ",
         @sprintf("%.2f",PS3_WEALTH*exp(PS3_BENCHMARK*PS3_DAYS*PS3_DT)),".");
@@ -238,9 +246,10 @@ function print_finance_report(track::AbstractString,root::AbstractString;
         end
     end
     markdown_table(io,"Observed results at 3% borrowing",t["observed"],[:window=>"Window",:portfolio=>"Portfolio",:realized_risk=>"Realized risk",:net_wealth=>"Net wealth",:beats_benchmark=>"Success"]);
-    markdown_table(io,"Borrowing-fee comparison",t["fees"],[:window=>"Window",:zero_fee_wealth=>"Wealth at 0%",:three_percent_wealth=>"Wealth at 3%",:borrowing_fee=>"Fee",:short_pnl=>"Short gains before fees",:zero_fee_success=>"Success at 0%",:three_percent_success=>"Success at 3%"]);
+    markdown_table(io,"Borrowing-fee comparison",t["fees"],[:window=>"Window",:portfolio=>"Portfolio",:zero_fee_wealth=>"Wealth at 0%",:three_percent_wealth=>"Wealth at 3%",:borrowing_fee=>"Fee",:short_pnl=>"Short gains before fees",:zero_fee_success=>"Success at 0%",:three_percent_success=>"Success at 3%"]);
     markdown_table(io,"Individual-stock risk",t["stock-risk"],[:window=>"Window",:ticker=>"Stock",:risk=>"Estimated risk"]);
     markdown_table(io,"Short-position diagnostics",t["short-diagnostics"],[:window=>"Window",:ticker=>"Stock",:weight=>"Weight",:stock_risk=>"Stock risk",:correlation_with_longs=>"Correlation with combined longs"]);
+    println(io,"\nCorrelation with combined longs compares the shorted stock's growth rates with the growth rate of the portfolio's long positions. Both use the estimation window. The long positions keep their initial weights, rescaled to sum to one.");
     if track=="advanced"
         markdown_table(io,"Modeled success probabilities",t["probabilities"],[:window=>"Model window",:portfolio=>"Portfolio",:probability_zero=>"Success at 0%",:probability_three_percent=>"Success at 3%",:fee_change_percentage_points=>"Fee change (pp)"]);
         markdown_table(io,"Simulation precision",t["probabilities"],[:window=>"Model window",:portfolio=>"Portfolio",:paths=>"Paths",:se_zero=>"SE at 0% (pp)",:se_three_percent=>"SE at 3% (pp)"]);

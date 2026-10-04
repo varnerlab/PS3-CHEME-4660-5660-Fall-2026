@@ -10,7 +10,10 @@ const _TRACK = String(strip(read(joinpath(_ROOT, "TRACK.txt"), String)));
 _TRACK in ("standard", "advanced") || throw(ArgumentError("TRACK.txt must contain standard or advanced."));
 const _SOURCE_PATH = joinpath(_ROOT, _USE_SOLUTION ? "instructor/reference" : "src", titlecase(_TRACK)*".jl");
 
-using VLQuantitativeFinancePackage: build, solve,
+import VLQuantitativeFinancePackage # course price-path sampler
+using DataFrames # ticker-keyed price tables, as in the course notebooks
+using VLQuantitativeFinancePackage: build, solve, log_growth_matrix,
+    MyMultipleAssetGeometricBrownianMotionEquityModel,
     MyMarkowitzRiskyAssetOnlyPortfolioChoiceProblem # course long-only portfolio solver
 using LinearAlgebra # covariance factors, matrix products, and linear solves
 using Statistics # sample means, covariance, standard deviation, and correlation

@@ -3,67 +3,79 @@
 **Central question:** Does using more recent data lead to a better portfolio,
 and does allowing short positions help?
 
-Use the supplied report tables as evidence. **Do not reproduce them.** Cite
-selected numbers with their window and portfolio labels. Keep these answer
-markers and replace each TODO with your response. About two short paragraphs
-per question should be sufficient; Question 1 also includes your prediction.
+Answer every lettered part of each question inside that question's answer
+block. Keep the `<!-- answer-N:start -->` and `<!-- answer-N:end -->`
+markers, and replace each TODO with your response. One short paragraph per
+lettered part is enough.
+
+Use the report tables as evidence. Cite only the numbers that support each
+comparison, with their window and portfolio labels. Do not copy whole tables
+or list every value.
 
 Report weights and exposures as percentages, wealth and fees in USD, and
 risk in inverse years. Use four decimal places for risk so small differences
 remain visible. Formulas are in the
 [mathematical companion](../docs/PS3-Mathematical-Companion.pdf).
 
-## 1. What allocations does each history suggest?
+## 1. What allocations does each estimation window suggest?
 
-**Predict first.** Before viewing the allocation comparison, write two or
-three sentences about how using 2025 alone might change the short exposure
-and reliability of the risk estimates. Keep this prediction. If you have
-already seen the results, say so and explain what you would have expected.
+**a. Predict first.** Before you view any allocation results, write two or
+three sentences predicting how using 2025 alone might change the short
+exposure and the reliability of the risk estimates. If you have already seen
+the results, say so and state what you would have expected.
 
-**Compare and explain.** For each window, identify the shorted stocks and
-report total short exposure and the estimated risk of the two optimized
-portfolios. Revisit your prediction. Explain why covariance, rather than
-individual volatility alone, determines whether a short can help. Why can
-allowing shorts never increase the minimum estimated variance when the
-covariance matrix is held fixed?
+**b. Compare the windows.** For each window, name the shorted stocks. Cite
+the short exposure and the estimated risks of the two GMV portfolios that
+support your comparison.
+
+**c. Explain.** Revisit your prediction. Explain why covariance, rather than
+individual volatility alone, determines whether a short position can help.
+Explain why allowing short positions can never increase the minimum
+estimated variance when the covariance matrix is held fixed.
 
 <!-- answer-1:start -->
-TODO: Add your prediction and interpret the allocation comparison.
+TODO: Answer parts a–c.
 <!-- answer-1:end -->
 
 ## 2. Which estimates hold up in 2026?
 
-For each window, compare the long-only and shorts-allowed portfolios'
-realized risk and net terminal wealth at a 3% borrowing rate. Cite those
-values, then identify which of the four allocations had the lowest realized
-risk and which had the greatest net wealth. Briefly compare these with the
-supplied equal-weight reference.
+**a. Compare realized risk and net wealth.** At a 3% borrowing rate, compare
+the long-only and shorts-allowed portfolios within each window. Identify
+which of the four portfolios had the lowest realized risk and which had the
+greatest net wealth, and compare them with the equal-weight reference.
 
-For each shorts-allowed allocation, report the borrowing fee and use the
-zero-fee result to judge whether the fee or the holdings explain most of
-its wealth difference from the long-only allocation. Explain why a short
-can lose money while still helping to reduce portfolio fluctuations.
+**b. Separate fees from holdings.** For each shorts-allowed portfolio, cite
+its borrowing fee and its 0% result. Decide whether the fee or the different
+holdings explain most of its wealth difference from the long-only portfolio.
+
+**c. Explain the short positions.** Explain how a short position can lose
+money while still helping to reduce portfolio fluctuations.
 
 <!-- answer-2:start -->
-TODO: Interpret the common 2026 evaluation and separate holdings from fee effects.
+TODO: Answer parts a–c.
 <!-- answer-2:end -->
 
-## 3. What would you conclude?
+## 3. What can we conclude?
 
-Answer the central question for this experiment. Support your answer with
-two numerical comparisons from Questions 1 and 2; distinguish estimated
-risk from realized risk and wealth. Explain one advantage and one limitation
-of using the recent window. Why does changing both sample size and recency
-prevent this comparison from identifying their separate effects?
+**a. Answer the central question.** State whether using only 2025 prices led
+to a better portfolio in this experiment and whether allowing short
+positions helped. Support your answer with two numerical comparisons from
+Questions 1 and 2. Distinguish estimated risk, realized risk, and net
+wealth. A well-supported conclusion can favor different portfolios for risk
+and for wealth.
 
-State what the single 2026 evaluation cannot establish about which window
-or shorting rule will work best in the future. A well-supported conclusion
-can favor different portfolios for risk and wealth.
+**b. Weigh the 2025 window.** Explain one advantage and one limitation of
+using only 2025 prices.
+
+**c. State the limits.** Changing the window changes both the number of
+observations and how recent they are. Explain why this experiment cannot
+separate those two effects. State what this single 2026 evaluation cannot
+establish about which window or shorting rule will work best in the future.
 
 <!-- answer-3:start -->
-TODO: Give your conclusion and explain its limits.
+TODO: Answer parts a–c.
 <!-- answer-3:end -->
 
 An incorrect initial prediction does not reduce your score when you explain
-and reconsider it using the results. No additional window or fee sweep is
+and reconsider it using the results. No additional window or fee rate is
 required.

@@ -3,76 +3,91 @@
 **Central question:** Does using more recent data lead to a better portfolio,
 and does allowing short positions help?
 
-Complete this file instead of the Standard responses. Use the supplied
-report tables as evidence. **Do not reproduce them.** Cite
-selected numbers with their window and portfolio labels. Keep these answer
-markers and replace each TODO with your response. About two short paragraphs
-per question should be sufficient; Question 1 also includes your prediction; Question 3 may need three paragraphs.
+Complete this file instead of the Standard responses. Answer every lettered
+part of each question inside that question's answer block. Keep the
+`<!-- answer-N:start -->` and `<!-- answer-N:end -->` markers, and replace
+each TODO with your response. One short paragraph per lettered part is
+enough.
+
+Use the report tables as evidence. Cite only the numbers that support each
+comparison, with their window and portfolio labels. Do not copy whole tables
+or list every value.
 
 Report weights and exposures as percentages, wealth and fees in USD, and
 risk in inverse years. Use four decimal places for risk so small differences
-remain visible. Formulas are in the
+remain visible. Report probabilities as percentages and probability changes
+in percentage points. Formulas are in the
 [mathematical companion](../docs/PS3-Mathematical-Companion.pdf).
 
-## 1. What allocations does each history suggest?
+## 1. What allocations does each estimation window suggest?
 
-**Predict first.** Before viewing the allocation comparison, write two or
-three sentences about how using 2025 alone might change the short exposure
-and reliability of the risk estimates. Keep this prediction. If you have
-already seen the results, say so and explain what you would have expected.
+**a. Predict first.** Before you view any allocation results, write two or
+three sentences predicting how using 2025 alone might change the short
+exposure and the reliability of the risk estimates. If you have already seen
+the results, say so and state what you would have expected.
 
-**Compare and explain.** For each window, identify the shorted stocks and
-report total short exposure and the estimated risk of the two optimized
-portfolios. Revisit your prediction. Explain why covariance, rather than
-individual volatility alone, determines whether a short can help. Why can
-allowing shorts never increase the minimum estimated variance when the
-covariance matrix is held fixed?
+**b. Compare the windows.** For each window, name the shorted stocks. Cite
+the short exposure and the estimated risks of the two GMV portfolios that
+support your comparison.
+
+**c. Explain.** Revisit your prediction. Explain why covariance, rather than
+individual volatility alone, determines whether a short position can help.
+Explain why allowing short positions can never increase the minimum
+estimated variance when the covariance matrix is held fixed.
 
 <!-- answer-1:start -->
-TODO: Add your prediction and interpret the allocation comparison.
+TODO: Answer parts a–c.
 <!-- answer-1:end -->
 
 ## 2. Which estimates hold up in 2026?
 
-For each window, compare the long-only and shorts-allowed portfolios'
-realized risk and net terminal wealth at a 3% borrowing rate. Cite those
-values, then identify which of the four allocations had the lowest realized
-risk and which had the greatest net wealth. Briefly compare these with the
-supplied equal-weight reference.
+**a. Compare realized risk and net wealth.** At a 3% borrowing rate, compare
+the long-only and shorts-allowed portfolios within each window. Identify
+which of the four portfolios had the lowest realized risk and which had the
+greatest net wealth, and compare them with the equal-weight reference.
 
-For each shorts-allowed allocation, report the borrowing fee and use the
-zero-fee result to judge whether the fee or the holdings explain most of
-its wealth difference from the long-only allocation. Explain why a short
-can lose money while still helping to reduce portfolio fluctuations.
+**b. Separate fees from holdings.** For each shorts-allowed portfolio, cite
+its borrowing fee and its 0% result. Decide whether the fee or the different
+holdings explain most of its wealth difference from the long-only portfolio.
+
+**c. Explain the short positions.** Explain how a short position can lose
+money while still helping to reduce portfolio fluctuations.
 
 <!-- answer-2:start -->
-TODO: Interpret the common 2026 evaluation and separate holdings from fee effects.
+TODO: Answer parts a–c.
 <!-- answer-2:end -->
 
-## 3. How likely was success under each model?
+## 3. How likely was success under each model, and what can we conclude?
 
-At a 3% borrowing rate, compare the success probabilities for the two
-optimized portfolios under each window's MA-GBM model. Cite the probabilities
-and observed success or failure. Within each window, does the lowest
-estimated variance correspond to the highest modeled success probability?
-Explain why it need not.
+**a. Compare predictions with outcomes.** For each fitted model, cite the
+two GMV portfolios' success probabilities at a 3% borrowing rate and their
+observed success or failure from Question 2. Within each window, does the
+portfolio with the lowest estimated variance have the highest modeled
+success probability? Explain why it need not.
 
-For each shorts-allowed allocation, report the change in probability from
-0% to 3% fees, in percentage points. Explain why it cannot increase when
-holdings and simulated asset paths are unchanged. The report supplies these
-calculations; no extra simulation code is required.
+**b. Interpret the fee effect.** For each shorts-allowed portfolio, report
+the change in success probability from 0% to 3% fees, in percentage points.
+Explain why this change cannot be positive when the holdings and simulated
+price paths are unchanged.
 
-Conclude whether the recent window gave a better portfolio in this
-experiment. Distinguish changes in the holdings from changes in the fitted
-price model: why can the equal-weight probability change even though its
-holdings do not? Explain one advantage and one limitation of the recent
-window, and why a small Monte Carlo standard error and this single observed
-history cannot establish forecast accuracy.
+**c. Compare the two models.** When you compare predictions across windows,
+separate changes in the portfolio weights from changes in the fitted model.
+Explain why the equal-weight portfolio can have different success
+probabilities under the two models even though its holdings do not change.
+
+**d. Answer the central question.** Use the observed results and the modeled
+probabilities to state whether using only 2025 prices led to a better
+portfolio and whether allowing short positions helped. Support your answer
+with two numerical comparisons. Explain one advantage and one limitation of
+using only 2025 prices. Changing the window changes both the number of
+observations and how recent they are; explain why this experiment cannot
+separate those two effects. Explain why a small Monte Carlo standard error
+and this single observed 2026 episode cannot establish forecast accuracy.
 
 <!-- answer-3:start -->
-TODO: Compare model probabilities, interpret fees, and give a qualified conclusion.
+TODO: Answer parts a–d.
 <!-- answer-3:end -->
 
 An incorrect initial prediction does not reduce your score when you explain
-and reconsider it using the results. No additional window or fee sweep is
-required.
+and reconsider it using the results. No additional window, fee rate, or
+simulation code is required.
