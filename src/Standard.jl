@@ -1,6 +1,7 @@
 # PS3 Standard: complete the four functions below.
 # The report reuses these functions for both estimation windows.
 # Keep the function names, arguments, return types, and docstrings.
+# Leave the input arrays unchanged; some checks verify this.
 # Replace each error("Complete ...") expression with your calculation.
 # The setup lines, return statements, and solver roundoff cleanup are supplied.
 # Save your code, then run from the PS3 folder:
@@ -229,7 +230,7 @@ Calculate the total borrowing fee on the short positions over the holding period
 
 ### Arguments
 
-- `prices`: Share prices (USD/share) from day 0 through the sale day. Rows
+- `prices`: Share prices (USD/share) from day 0 through the closing day. Rows
   are trading days and columns are stocks.
 - `shares`: Signed, fixed share counts from `portfolio_path`.
 - `annual_rate`: Annual borrowing rate as a fraction, for example `0.03`
@@ -246,8 +247,8 @@ Calculate the total borrowing fee on the short positions over the holding period
 
 This fee is a PS3 extension. For each interval, charge `annual_rate*Δt`
 times the value of the shares owed at the start of the interval. The
-final row is the sale day and starts no interval. Fees are paid at the
-sale, do not compound, and do not change the share counts.
+final row is the closing day and starts no interval. Fees are paid on the
+closing day, do not compound, and do not change the share counts.
 
 ### Course references
 
@@ -272,7 +273,7 @@ function borrowing_costs(prices::Array{Float64,2}, shares::Array{Float64,1},
         if shares[i] < 0.0 # only borrowed shares incur fees
             shares_owed = -shares[i]; # positive number of shares owed
 
-            for j ∈ 1:(N-1) # interval starts; exclude the final sale row
+            for j ∈ 1:(N-1) # interval starts; exclude the final closing-day row
                 # TODO 2: Value the shares owed at this interval's starting price.
                 # Hint: multiply prices[j,i] (USD/share) by shares_owed (shares).
                 short_value = error("Complete borrowing_costs: calculate short_value.");

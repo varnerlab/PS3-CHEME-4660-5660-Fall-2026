@@ -30,7 +30,8 @@ December 31, 2024 to January 2, 2025. The supplied loader selects each
 window's rows and arranges them as price tables keyed by ticker. Your
 `estimate_inputs` function receives the same kind of input for either window.
 
-The first 2026 row is day 1. The 126th observation is **July 6, 2026**.
+The first 2026 row is day 1. The 126th observation, **July 6, 2026**, is the
+closing day.
 Include day 0 when forming the evaluation path, giving 127 price rows and 126 trading intervals.
 The later observations are supplied as part of the fixed snapshot but
 are not used to fit or select anything in this assignment.

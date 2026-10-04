@@ -77,9 +77,10 @@ function finance_tables(track::AbstractString, root::AbstractString;
             checked_estimates(estimate_inputs(deepcopy(window.dataset),copy(data.tickers); Δt=PS3_DT),size(window.prices,1),8);
         end
         eqrisk = parameters === nothing ? missing : sqrt(max(0.0,dot(equal,parameters.covariance*equal)));
+        eqgrowth = parameters === nothing ? missing : dot(equal,parameters.mean);
         push!(tables["window-inputs"],(window=window.label,price_rows=size(window.prices,1),
             growth_rows=size(window.prices,1)-1,start_date=first(window.dates),end_date=last(window.dates),
-            equal_weight_estimated_risk=eqrisk));
+            equal_weight_estimated_growth=eqgrowth,equal_weight_estimated_risk=eqrisk));
         for i in 1:8
             push!(tables["stock-risk"],(window=window.label,ticker=data.tickers[i],
                 risk=parameters===nothing ? missing : sqrt(max(0.0,parameters.covariance[i,i]))));
@@ -91,10 +92,11 @@ function finance_tables(track::AbstractString, root::AbstractString;
             end
             allocations[name] = weights;
             risk = weights===nothing ? missing : sqrt(max(0.0,dot(weights,parameters.covariance*weights)));
+            growth = weights===nothing ? missing : dot(weights,parameters.mean);
             exposure = weights===nothing ? missing : max(0.0,-sum(weights[weights .< -PS3_WEIGHT_TOL]));
             holdings = weights===nothing ? fill(missing,8) : weights;
-            push!(tables["allocations"],merge((window=window.label,portfolio=name,estimated_risk=risk,
-                short_exposure=exposure),NamedTuple{Tuple(Symbol.(data.tickers))}(Tuple(holdings))));
+            push!(tables["allocations"],merge((window=window.label,portfolio=name,estimated_growth=growth,
+                estimated_risk=risk,short_exposure=exposure),NamedTuple{Tuple(Symbol.(data.tickers))}(Tuple(holdings))));
             history = weights===nothing ? nothing : report_attempt("$(window.label) $name 2026 evaluation",issues) do
                 historical_record(data.prices,weights,issues);
             end
@@ -138,7 +140,7 @@ end
 """Append one history row and its gross wealth series, or explicit unavailable cells."""
 function add_history!(tables, window, name, h, dates)
     value(field) = h===nothing ? missing : getproperty(h,field);
-    push!(tables["observed"],(window=window,portfolio=name,sale_date=last(dates),
+    push!(tables["observed"],(window=window,portfolio=name,closing_date=last(dates),
         realized_risk=value(:risk),gross_wealth=value(:gross),borrowing_fee=value(:fees),
         net_wealth=value(:net),scaled_npv=value(:scaled_npv),beats_benchmark=value(:success)));
     for (i,date) in enumerate(dates)
@@ -211,7 +213,7 @@ function report_cell(x, key::Symbol)::String
     key in Symbol.(PS3_TICKERS) || key in (:weight,:short_exposure,:probability_zero,:probability_three_percent,:scaled_npv) ?
         (@sprintf("%.4f%%",100*x)) :
         key in (:se_zero,:se_three_percent) ? (@sprintf("%.4f",100*x)) :
-        occursin("risk",string(key)) || key==:correlation_with_longs ? (@sprintf("%.4f",x)) :
+        occursin("risk",string(key)) || occursin("growth",string(key)) || key==:correlation_with_longs ? (@sprintf("%.4f",x)) :
         (@sprintf("%.2f",x));
 end
 
@@ -255,10 +257,11 @@ function print_finance_report(track::AbstractString,root::AbstractString;
     println(io,"Hold USD 10,000 from December 31, 2025 through July 6, 2026 (126 trading days).");
     println(io,"Risk is measured before fees in inverse years. Wealth is in USD. The 5% continuous benchmark is USD ",
         @sprintf("%.2f",PS3_WEALTH*exp(PS3_BENCHMARK*PS3_DAYS*PS3_DT)),".");
-    markdown_table(io,"Estimation windows",t["window-inputs"],[:window=>"Window",:price_rows=>"Prices",:growth_rows=>"Changes",:equal_weight_estimated_risk=>"Equal-weight estimated risk"]);
+    markdown_table(io,"Estimation windows",t["window-inputs"],[:window=>"Window",:price_rows=>"Prices",:growth_rows=>"Changes",:equal_weight_estimated_growth=>"Equal-weight estimated growth",:equal_weight_estimated_risk=>"Equal-weight estimated risk"]);
+    println(io,"\nEstimated growth is the weighted average of the stocks' mean growth rates, in inverse years. It does not affect the GMV weights.");
     for window in ("2014-2025","2025")
         rows=filter(r->r.window==window,t["allocations"]);
-        markdown_table(io,"Allocations: $window",rows,[:portfolio=>"Portfolio",:estimated_risk=>"Estimated risk",:short_exposure=>"Short exposure"]);
+        markdown_table(io,"Allocations: $window",rows,[:portfolio=>"Portfolio",:estimated_growth=>"Estimated growth",:estimated_risk=>"Estimated risk",:short_exposure=>"Short exposure"]);
         weight_rows=[(ticker=ticker,long_only=getproperty(rows[1],Symbol(ticker)),shorts_allowed=getproperty(rows[2],Symbol(ticker))) for ticker in PS3_TICKERS];
         # Weight columns use percent labels explicitly; input CSV weights remain fractions.
         println(io,"\n| Stock | Long only (%) | Shorts allowed (%) |\n| --- | --- | --- |");

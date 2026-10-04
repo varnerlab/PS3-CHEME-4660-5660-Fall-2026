@@ -14,9 +14,9 @@ comparison, with their window and portfolio labels. Do not copy whole tables
 or list every value.
 
 Report weights and exposures as percentages, wealth and fees in USD, and
-risk in inverse years. Use four decimal places for risk so small differences
-remain visible. Report probabilities as percentages and probability changes
-in percentage points. Formulas are in the
+growth and risk in inverse years. Use four decimal places for risk so small
+differences remain visible. Report probabilities as percentages and
+probability changes in percentage points. Formulas are in the
 [mathematical companion](../docs/PS3-Mathematical-Companion.pdf).
 
 ## 1. What allocations does each estimation window suggest?
@@ -31,7 +31,8 @@ the short exposure and the estimated risks of the two GMV portfolios that
 support your comparison.
 
 **c. Explain.** Revisit your prediction. Explain why covariance, rather than
-individual volatility alone, determines whether a short position can help.
+a stock's own estimated risk alone, determines whether a short position can
+help.
 Explain why allowing short positions can never increase the minimum
 estimated variance when the covariance matrix is held fixed.
 
@@ -49,11 +50,14 @@ greatest net wealth, and compare them with the equal-weight reference.
 **b. Separate fees from holdings.** For each shorts-allowed portfolio, cite
 its borrowing fee and its 0% result. Decide whether the fee or the different
 holdings explain most of its wealth difference from the long-only portfolio.
+Long-only portfolios owe no fee, so their wealth is the same at both rates.
 
 **c. Explain the short positions.** For one shorts-allowed portfolio, cite
 its long and short gains before fees and one shorted stock's 2026 price
-change. Explain how a short position can lose money while still helping
-to reduce portfolio fluctuations.
+change. Explain how a short position can lose money while still offsetting
+fluctuations in the long holdings, as the estimation window suggested. Then
+compare that portfolio's 2026 realized risk with the long-only portfolio
+from the same window, and state whether the expected offset held up.
 
 <!-- answer-2:start -->
 TODO: Answer parts a–c.
@@ -65,7 +69,8 @@ TODO: Answer parts a–c.
 two GMV portfolios' success probabilities at a 3% borrowing rate and their
 observed success or failure from Question 2. Within each window, does the
 portfolio with the lowest estimated variance have the highest modeled
-success probability? Explain why it need not.
+success probability? Use the estimated growth and risk in the allocation
+tables to explain why it need not.
 
 **b. Interpret the fee effect.** For each shorts-allowed portfolio, report
 the change in success probability from 0% to 3% fees, in percentage points.
@@ -76,8 +81,9 @@ price paths are unchanged.
 portfolios only under that window's model, so comparing an optimized
 portfolio across windows changes both its weights and the model. The
 equal-weight portfolio has the same holdings under both models. Cite its
-success probability under each model and explain why they differ. No
-additional simulations are required.
+success probability under each model. Use its estimated growth and risk in
+the Estimation windows table to explain why they differ. No additional
+simulations are required.
 
 **d. Answer the central question.** Use the observed results and the modeled
 probabilities to state whether using only 2025 prices led to a better

@@ -88,9 +88,9 @@ vector of eight ones. Both optimized portfolios solve:
 \item \hilite{Equal weight:} use $w_i=1/8$ as the reference allocation.
 \end{itemize}
 \vspace{0.2em}
-Estimated risk $\widehat\sigma_p=\sqrt{\bw^\top\Sg\bw}$, in inverse years, uses
-the lecture's linear growth approximation at the initial weights. It is
-$\sqrt{252}\approx16$ times the conventional annualized volatility $\widehat\sigma_p\sqrt{\Delta t}$.
+Estimated growth $\hat g_p=\ghat^\top\bw$ and risk $\widehat\sigma_p=\sqrt{\bw^\top\Sg\bw}$,
+both in inverse years, use the lecture's linear growth approximation at the
+initial weights.
 \slidenote{Scope}{Add no growth target or borrowing fee. The supplied long-only floor $R=\min_i\hat g_i$ excludes no allocation.}
 \end{frame}
 
@@ -103,7 +103,8 @@ $\bone$, the global minimum-variance allocation is:
  \bw_{\mathrm{shorts}}=\frac{\mathbf x}{\bone^\top\mathbf x}.
 \]
 Solve the linear system for $\mathbf x$; do not explicitly form the inverse.
-In Julia, use \texttt{covariance \textbackslash\ ones(8)}.
+In Julia, use the backslash operator with the starter's \texttt{one\_vector},
+which has one entry per stock.
 
 \vspace{0.8em}
 Every long-only allocation is feasible when shorts are allowed. The
@@ -114,7 +115,7 @@ That conclusion concerns the \hilite{same estimated covariance}. It does
 not guarantee lower realized risk on the 2026 prices.
 \end{frame}
 
-\begin{frame}{Study 1: Why Might a Volatile Stock Be Shorted?}
+\begin{frame}{Study 1: Why Short a High-Risk Stock?}
 For fixed initial weights, define the weighted growth of the long positions
 as $G_+$ and the growth of the shares owed as $G_-$:
 \[
@@ -127,7 +128,7 @@ The portfolio's linear growth approximation is $G_+-G_-$. Its variance is:
               -\underbrace{2\Cov(G_+,G_-)}_{\text{offsetting movement}}.
 \]
 Positive covariance provides an offset, while the short positions also
-contribute their own variance. \hilite{Individual volatility alone does
+contribute their own variance. \hilite{A stock's own risk alone does
 not establish whether a short is a useful hedge.}
 \end{frame}
 
@@ -158,7 +159,7 @@ The signed share count $q_i$ and wealth before fees are:
  W_k^{\mathrm{gross}}=\sum_i q_i S_{i,k}.
 \]
 A negative $q_i$ represents shares owed. \hilite{Share counts remain fixed}
-through day $N=126$. Weights change with prices.
+through the closing day, day $N=126$. Weights change with prices.
 
 \vspace{0.8em}
 Day 0 is the final 2025 observation. Day 1 is the first 2026 observation.
@@ -184,7 +185,7 @@ wealth is ever nonpositive, this log-growth measure is unavailable.
 \end{frame}
 
 \begin{frame}{Study 2: Separate Profit from Hedging}
-For signed share count $q_i$ and sale day $N$, stock $i$'s dollar gain or
+For signed share count $q_i$ and closing day $N$, stock $i$'s dollar gain or
 loss, $\Pi_i$, is:
 \[
  \Pi_i=q_i(S_{i,N}-S_{i,0}),
@@ -217,8 +218,8 @@ $k$, in USD. For annual borrowing rate $b$, total fees through day $N$ are:
 \]
 Use $b=0$ and $b=0.03$ with the same holdings and price path.
 \begin{itemize}\setlength{\itemsep}{0.5em}
-\item Charge on beginning-of-interval values; exclude the sale-day value.
-\item Accrue fees without interest and pay them at liquidation.
+\item Charge on beginning-of-interval values; exclude the closing-day value.
+\item Accrue fees without interest and pay them on the closing day.
 \item Portfolios without short positions owe zero fees.
 \end{itemize}
 \slidenote{Convention}{These are illustrative annual rates using 252 trading days per year.}
@@ -304,7 +305,7 @@ the denominator, including nonpositive wealth outcomes.
 \vspace{0.8em}
 A signed sum of lognormal asset prices is generally not lognormal, so the
 report computes wealth from the joint asset paths. With no forced liquidation,
-it keeps the holdings through the sale day even if wealth crosses zero earlier.
+it keeps the holdings through the closing day even if wealth crosses zero earlier.
 \end{frame}
 
 \begin{frame}{Advanced: Interpret the Probability Estimate}
@@ -334,7 +335,7 @@ with and without short positions and borrowing fees.
 \textbf{Key takeaways}
 \begin{itemize}\setlength{\itemsep}{0.55em}
 \item Covariance determines whether short positions help offset portfolio
-fluctuations; individual volatility alone is insufficient.
+fluctuations; a stock's own risk alone is insufficient.
 \item Lower estimated variance does not guarantee lower realized risk or
 more terminal wealth. Borrowing fees reduce the proceeds.
 \item MAGBM supplies a model-based success probability. Simulation precision

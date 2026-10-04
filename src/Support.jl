@@ -71,7 +71,7 @@ function load_experiment(root::AbstractString)::NamedTuple
     all(d -> 2014 <= year(d) <= 2025, training.dates) || error("Invalid training year.");
     all(d -> year(d) == 2026, observed.dates) || error("Evaluation contains a non-2026 date.");
     length(observed.dates) >= PS3_DAYS || error("Evaluation needs 126 trading days.");
-    observed.dates[PS3_DAYS] == Date(2026,7,6) || error("Unexpected liquidation date.");
+    observed.dates[PS3_DAYS] == Date(2026,7,6) || error("Unexpected closing date.");
     recent = year.(training.dates) .== 2025;
     count(recent) == 250 || error("Expected 250 recent prices.");
     windows = [(label="2014-2025", dates=training.dates, prices=training.prices),
@@ -86,8 +86,8 @@ end
 """
     realized_risk(wealth, dt) -> Union{Missing,Float64}
 
-Return the sample standard deviation of annualized log growth from a gross
-wealth path. Return `missing` if any wealth is nonpositive or fewer than two
+Return the sample standard deviation of the growth rates (log changes
+divided by dt) from a gross wealth path. Return `missing` if any wealth is nonpositive or fewer than two
 intervals are available. No clipping, fees, or early liquidation are applied.
 """
 function realized_risk(wealth::AbstractVector, dt::Real)
@@ -138,7 +138,7 @@ end
 Reuse the student's holdings and fee functions on every supplied price path.
 Return gross and net terminal wealth vectors and the number of gross paths
 that touched zero or became negative. Retain every outcome and fixed holding
-through liquidation. The zero-fee comparison uses the same gross vector.
+through the closing day. The zero-fee comparison uses the same gross vector.
 """
 function simulated_outcomes(bank::Dict{Int64,Array{Float64,2}}, weights::Vector{Float64},
     wealth::Float64, annual_rate::Float64, dt::Float64)::NamedTuple

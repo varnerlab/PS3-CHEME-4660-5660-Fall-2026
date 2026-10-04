@@ -91,11 +91,11 @@ any market data.
    Question 1a of your response file.
 6. Complete the functions. Replace each `error("Complete ...")` expression
    with your calculation. Keep the supplied function names, arguments,
-   return types, docstrings, setup lines, and return statements. Each
-   docstring lists the arguments and return values, names the example
-   cell whose Julia code to imitate, and lists the slides to read. The
-   TODO hints give the steps. Delete each TODO
-   comment once you finish that step.
+   return types, docstrings, setup lines, and return statements. Leave the
+   input arrays unchanged; some checks verify this. Each docstring lists the
+   arguments and return values, names the example cell whose Julia code to
+   imitate, and lists the slides to read. The TODO hints give the steps.
+   Delete each TODO comment once you finish that step.
 7. Save your code and run the checker:
 
    ```text
@@ -130,9 +130,9 @@ America (BAC), Ford (F), and Johnson & Johnson (JNJ).
 
 Every portfolio begins with **USD 10,000 at the December 31, 2025 prices**.
 This is day 0. The first 2026 observation is day 1. Close all positions at
-observation 126 on July 6, 2026. Use 252 trading days per year. The
-[data notes](data/README.md) describe the aligned volume-weighted average
-prices in USD/share.
+observation 126 on July 6, 2026, the **closing day**. Use 252 trading days
+per year. The [data notes](data/README.md) describe the aligned
+volume-weighted average prices in USD/share.
 
 PS3 allows fractional shares and ignores dividends, taxes, commissions,
 bid-ask spreads, and collateral requirements. It includes the borrowing fee
@@ -158,26 +158,26 @@ the shorting rule change the weights and the estimated risk.
    nonnegative weights and use the course solver. For the shorts-allowed
    case, allow negative weights and use the L6a closed-form solution with a
    linear solve. A negative weight is a short position: borrowed shares that
-   are sold now and bought back at the sale. Do not add a growth target or a
-   borrowing fee. The long-only starter code supplies a growth floor equal to
-   the smallest mean growth rate. Keep it: every fully invested long-only
-   portfolio meets this floor, so it excludes no allocation.
+   are sold now and bought back on the closing day. Do not add a growth
+   target or a borrowing fee. The long-only starter code supplies a growth
+   floor equal to the smallest mean growth rate. Keep it: every fully
+   invested long-only portfolio meets this floor, so it excludes no
+   allocation.
 4. **Answer Questions 1b and 1c.** Run the checker. It calls your functions
-   for both estimation windows and reports four portfolios. Short exposure
-   is the total initial value of the short positions as a percentage of
-   initial wealth. The report also lists each stock's estimated risk and,
-   for each shorted stock, its correlation with the portfolio's long
-   positions. Use these values to compare the windows and to explain why
-   covariance matters when choosing stocks to short.
+   for both estimation windows and reports four portfolios, each with its
+   estimated growth, estimated risk, and short exposure. Estimated growth is
+   the weighted average of the stocks' mean growth rates; it does not affect
+   the GMV weights. Short exposure is the total initial value of the short
+   positions as a percentage of initial wealth. The report also lists each
+   stock's estimated risk and, for each shorted stock, its correlation with
+   the portfolio's long positions. Use these values to compare the windows
+   and to explain why covariance matters when choosing stocks to short.
 
-Risk values follow the course convention: each daily log price change is
-divided by one trading day expressed in years, so risk has units of inverse
-years. These values are about 16 times larger than the annualized
-volatilities quoted in financial news. The
-[mathematical companion](docs/PS3-Mathematical-Companion.pdf) shows the
-conversion. Some differences between portfolios may be small. A small
-difference is a result to interpret, not a sign of a coding error; the
-four-decimal risk values keep it visible.
+Risk values are standard deviations of growth rates in inverse years, so
+they are larger than the percentage volatilities quoted in financial news.
+Some differences between portfolios may be small. A small difference is a
+result to interpret, not a sign of a coding error; the report shows risk to
+four decimal places so it stays visible.
 
 The report also includes an equal-weight reference that puts one eighth of
 initial wealth in each stock. You do not write a function for it.
@@ -205,9 +205,9 @@ change the wealth comparison.
    your function. Charge each trading interval using the value
    of the shares owed at the start of that interval. Divide the annual rate
    by 252 to get the daily rate. The 126 intervals use the prices from day 0
-   through day 125. Fees do not earn or pay interest and are paid at the
-   sale. Portfolios without short positions owe no fee. The 3% rate is an
-   illustrative assumption.
+   through day 125. Fees do not earn or pay interest and are paid on the
+   closing day. Portfolios without short positions owe no fee. The 3% rate
+   is an illustrative assumption.
 3. **Read the report.** Rerun the checker. The report uses your functions to
    calculate gross wealth (before fees) and net wealth (after fees). It also
    reports realized risk and success against the benchmark. For each

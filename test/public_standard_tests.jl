@@ -14,7 +14,7 @@ function standard_public_checks()::Vector{NamedTuple}
     return [
         (name="Estimation: one growth row per price interval", evaluate=() ->
             size(estimate_inputs(deepcopy(dataset),copy(tickers); Δt=dt)[1]) == (3,2)),
-        (name="Estimation: annualized log changes", evaluate=() ->
+        (name="Estimation: log changes divided by the time step", evaluate=() ->
             isapprox(estimate_inputs(deepcopy(dataset),copy(tickers); Δt=dt)[1],G; atol=1e-12)),
         (name="Estimation: column mean vector", evaluate=() ->
             isapprox(estimate_inputs(deepcopy(dataset),copy(tickers); Δt=dt)[2],[2.0,2.0]; atol=1e-12)),
@@ -57,7 +57,7 @@ function standard_public_checks()::Vector{NamedTuple}
             r = portfolio_path(p,weights,250.0);
             isapprox(r[2],[250.,337.5,150.]; atol=1e-12) && p==P && weights==w
         end),
-        (name="Fees: beginning-of-interval prices exclude liquidation", evaluate=() ->
+        (name="Fees: beginning-of-interval prices exclude the closing day", evaluate=() ->
             isapprox(borrowing_costs(copy(P),[15.,-2.5],0.03,0.25),0.7125; atol=1e-12)),
         (name="Fees: zero rate", evaluate=() -> borrowing_costs(copy(P),[15.,-2.5],0.0,0.25)==0.0),
         (name="Fees: no short shares", evaluate=() -> borrowing_costs(copy(P),[5.,2.5],0.03,0.25)==0.0),
