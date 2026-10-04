@@ -48,8 +48,10 @@ greatest net wealth, and compare them with the equal-weight reference.
 its borrowing fee and its 0% result. Decide whether the fee or the different
 holdings explain most of its wealth difference from the long-only portfolio.
 
-**c. Explain the short positions.** Explain how a short position can lose
-money while still helping to reduce portfolio fluctuations.
+**c. Explain the short positions.** For one shorts-allowed portfolio, cite
+its long and short gains before fees and one shorted stock's 2026 price
+change. Explain how a short position can lose money while still helping
+to reduce portfolio fluctuations.
 
 <!-- answer-2:start -->
 TODO: Answer parts a–c.

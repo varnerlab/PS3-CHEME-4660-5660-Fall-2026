@@ -24,7 +24,7 @@ Raises an error if an existing file cannot be removed. The checker reports
 this as a setup error.
 """
 function clear_previous_results(root::String)::Nothing
-    for name in ("window-inputs.csv", "allocations.csv", "observed.csv", "fees.csv", "stock-risk.csv", "short-diagnostics.csv", "probabilities.csv", "wealth-paths.csv", "Report.md")
+    for name in ("window-inputs.csv", "allocations.csv", "observed.csv", "fees.csv", "short-positions.csv", "stock-risk.csv", "short-diagnostics.csv", "probabilities.csv", "wealth-paths.csv", "Report.md")
         path = joinpath(root, "results", name);
         isfile(path) && rm(path);
     end

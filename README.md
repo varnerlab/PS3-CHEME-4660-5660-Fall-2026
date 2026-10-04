@@ -170,6 +170,15 @@ the shorting rule change the weights and the estimated risk.
    positions. Use these values to compare the windows and to explain why
    covariance matters when choosing stocks to short.
 
+Risk values follow the course convention: each daily log price change is
+divided by one trading day expressed in years, so risk has units of inverse
+years. These values are about 16 times larger than the annualized
+volatilities quoted in financial news. The
+[mathematical companion](docs/PS3-Mathematical-Companion.pdf) shows the
+conversion. Some differences between portfolios may be small. A small
+difference is a result to interpret, not a sign of a coding error; the
+four-decimal risk values keep it visible.
+
 The report also includes an equal-weight reference that puts one eighth of
 initial wealth in each stock. You do not write a function for it.
 
@@ -191,8 +200,9 @@ change the wealth comparison.
    wealth before borrowing fees. The weights drift as prices change; do not
    rebalance.
 2. **Complete `borrowing_costs`.** Calculate the total fee on the borrowed
-   shares for one annual rate. The report calls your function twice: once
-   at **0%** and once at **3%**. Charge each trading interval using the value
+   shares for one annual rate. The report compares two rates. At **0%** no
+   fee is owed, so net wealth equals gross wealth. At **3%** the report calls
+   your function. Charge each trading interval using the value
    of the shares owed at the start of that interval. Divide the annual rate
    by 252 to get the daily rate. The 126 intervals use the prices from day 0
    through day 125. Fees do not earn or pay interest and are paid at the
@@ -200,12 +210,15 @@ change the wealth comparison.
    illustrative assumption.
 3. **Read the report.** Rerun the checker. The report uses your functions to
    calculate gross wealth (before fees) and net wealth (after fees). It also
-   reports realized risk, gains or losses on the short positions, and
-   success against the benchmark. Realized risk is the sample standard
-   deviation of the portfolio's daily log growth rates, expressed per year
-   and calculated from wealth before fees. The benchmark starts at
-   USD 10,000 and grows at **5% per year, compounded continuously**. A
-   portfolio succeeds when its net wealth ends strictly above the benchmark.
+   reports realized risk and success against the benchmark. For each
+   shorts-allowed portfolio, it splits the gain before fees into the long
+   and short positions. For each shorted stock, it lists the amount shorted,
+   the stock's 2026 price change, and the gain or loss on that short.
+   Realized risk is the sample standard deviation of the portfolio's daily
+   log growth rates, on the same inverse-year scale as estimated risk and
+   calculated from wealth before fees. The benchmark starts at USD 10,000
+   and grows at **5% per year, compounded continuously**. A portfolio
+   succeeds when its net wealth ends strictly above the benchmark.
 4. **Answer Question 2.** Compare realized risk and net wealth within each
    window and against equal weight. Then use the 0% and 3% results to
    separate the effect of fees from the effect of different holdings.
@@ -276,9 +289,10 @@ shared by all portfolios.
 
 Read `results/Report.md` for the comparison tables. The same folder contains
 `window-inputs.csv`, `allocations.csv`, `observed.csv`, `fees.csv`,
-`stock-risk.csv`, `short-diagnostics.csv`, `wealth-paths.csv`, and
-`probabilities.csv`. The probability file has no data rows in Standard.
-Exported probabilities and weights are decimal fractions; the displayed
+`short-positions.csv`, `stock-risk.csv`, `short-diagnostics.csv`,
+`wealth-paths.csv`, and `probabilities.csv`. The probability file has no
+data rows in Standard. Exported probabilities, weights, and price changes
+are decimal fractions; the displayed
 tables use percentages. Each run replaces these generated files.
 
 You are graded on correct calculations and interpretation, regardless of

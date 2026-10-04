@@ -87,9 +87,10 @@ vector of eight ones. Both optimized portfolios solve:
 \item \hilite{Shorts allowed:} permit negative weights, with no position bounds.
 \item \hilite{Equal weight:} use $w_i=1/8$ as the reference allocation.
 \end{itemize}
-\vspace{0.5em}
-Estimated risk is $\widehat\sigma_p=\sqrt{\bw^\top\Sg\bw}$, in inverse years.
-It uses the lecture's linear growth approximation at the initial weights.
+\vspace{0.2em}
+Estimated risk $\widehat\sigma_p=\sqrt{\bw^\top\Sg\bw}$, in inverse years, uses
+the lecture's linear growth approximation at the initial weights. It is
+$\sqrt{252}\approx16$ times the conventional annualized volatility $\widehat\sigma_p\sqrt{\Delta t}$.
 \slidenote{Scope}{Add no growth target or borrowing fee. The supplied long-only floor $R=\min_i\hat g_i$ excludes no allocation.}
 \end{frame}
 
@@ -188,9 +189,14 @@ loss, $\Pi_i$, is:
 \[
  \Pi_i=q_i(S_{i,N}-S_{i,0}),
  \qquad
+ \Pi_{\mathrm{long}}=\sum_{i:q_i>0}\Pi_i,
+ \qquad
  \Pi_{\mathrm{short}}=\sum_{i:q_i<0}\Pi_i.
 \]
-A short gains when its price falls and loses when its price rises.
+The two sides add to the gain before fees:
+$\Pi_{\mathrm{long}}+\Pi_{\mathrm{short}}=W_N^{\mathrm{gross}}-W_0$.
+A short gains when its price falls and loses when it rises. If the price
+doubles, the short loses its entire initial value.
 
 \vspace{0.8em}
 Compare \hilite{terminal wealth} and \hilite{realized risk} separately. A
@@ -266,26 +272,28 @@ Keep the benchmark out of the fitted price drifts.
 \end{frame}
 
 \begin{frame}{Advanced: Simulate Joint Price Paths}
-At interval $k$, draw an eight-component standard normal vector
-$\mathbf z_k$ with independent components. Its mean is zero and covariance
-is the identity matrix. The exact daily MAGBM update is:
+The supplied simulator passes your model to the course sampler. At interval
+$k$, it draws an eight-component standard normal vector $\mathbf z_k$ with
+independent components, zero mean, and identity covariance. The exact daily
+MAGBM update is:
 \[
  \log\!\left(\frac{\mathbf S_{k+1}}{\mathbf S_k}\right)
  =\ghat\Delta t+A\sqrt{\Delta t}\,\mathbf z_k.
 \]
-Ratios and logarithms are componentwise. Use independent draws across days
+Ratios and logarithms are componentwise. Draws are independent across days
 and paths. The matrix $A$ introduces the fitted cross-stock dependence.
 
 \vspace{0.8em}
-Generate 20,000 paths through day 126 per model. Within each model, share
-price paths across portfolios and fees. Across models, reuse the normal
-draws; each fitted model transforms them into different price paths.
-\slidenote{Interpretation}{These forecasts use historical fitted drifts. They are not risk-neutral prices.}
+The simulator generates 20,000 paths through day 126 per model. Within each
+model, all portfolios and fee rates share the price paths. Across models, it
+reuses the normal draws; each fitted model transforms them differently.
+\slidenote{Supplied}{You write no simulation code. The forecasts use historical fitted drifts, not risk-neutral prices.}
 \end{frame}
 
 \begin{frame}{Advanced: Estimate the Success Probability}
-Let $s$ index the $K=20{,}000$ simulated paths. On each path, calculate
-net wealth using the fixed shares and that path's borrowing fees. Then:
+Let $s$ index the $K=20{,}000$ simulated paths. On each path, the report
+values your fixed shares and subtracts that path's borrowing fees. Your
+function then estimates:
 \[
  \hat p_N(b)=\frac1K\sum_{s=1}^K
  \mathbf1\!\left[W_{N,s}^{\mathrm{net}}(b)>W_0e^{g_yN\Delta t}\right].
@@ -294,9 +302,9 @@ The indicator is one for success and zero otherwise. Keep every path in
 the denominator, including nonpositive wealth outcomes.
 
 \vspace{0.8em}
-A signed sum of lognormal asset prices is generally not lognormal. Compute
-wealth from the joint asset paths. Under our no-forced-liquidation assumption,
-retain the holdings through the sale day even if wealth crosses zero earlier.
+A signed sum of lognormal asset prices is generally not lognormal, so the
+report computes wealth from the joint asset paths. With no forced liquidation,
+it keeps the holdings through the sale day even if wealth crosses zero earlier.
 \end{frame}
 
 \begin{frame}{Advanced: Interpret the Probability Estimate}

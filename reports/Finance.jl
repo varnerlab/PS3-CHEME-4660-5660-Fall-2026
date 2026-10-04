@@ -28,22 +28,34 @@ function checked_weights(w::Vector{Float64}, n::Int, shorts::Bool)
     return w;
 end
 
-"""Return one fixed-holdings historical record using the student's wealth and fee functions."""
-function historical_record(prices::Matrix{Float64}, weights::Vector{Float64})
+"""Return one fixed-holdings historical record. Fee-dependent fields stay missing until the fee function works."""
+function historical_record(prices::Matrix{Float64}, weights::Vector{Float64}, issues::Vector{String})
     shares, W = portfolio_path(prices,weights,PS3_WEALTH);
     path = (shares=shares,wealth=W);
     length(path.shares)==size(prices,2) && length(path.wealth)==size(prices,1) ||
         error("Holdings returned unexpected dimensions.");
     all(isfinite,path.shares) && all(isfinite,path.wealth) || error("Holdings must be finite.");
-    fee = borrowing_costs(prices,path.shares,0.03,PS3_DT);
-    isfinite(fee) && fee>=0 || error("Borrowing cost must be finite and nonnegative.");
+    # Report gross wealth and realized risk even while the fee function is unfinished -
+    fee = report_attempt("2026 borrowing fees",issues) do
+        f = borrowing_costs(prices,path.shares,0.03,PS3_DT);
+        isfinite(f) && f>=0 || error("Borrowing cost must be finite and nonnegative.");
+        f;
+    end
+    fee = fee===nothing ? missing : fee;
     short = weights .< -PS3_WEIGHT_TOL;
-    pnl = sum(path.shares[short].*(prices[end,short]-prices[1,short]));
+    # Split the gross gain by side; the long and short gains add to gross wealth minus W₀ -
+    gains = path.shares.*(prices[end,:]-prices[1,:]);
+    pnl = sum(gains[short]);
+    long_pnl = sum(gains[.!short]);
+    # Show what each short cost: its initial value, price change, and gain before fees -
+    positions = [(stock=i, amount=-path.shares[i]*prices[1,i], change=prices[end,i]/prices[1,i]-1,
+        gain=gains[i]) for i in findall(short)];
     gross = path.wealth[end];
     net = gross-fee;
     target = PS3_WEALTH*exp(PS3_BENCHMARK*PS3_DAYS*PS3_DT);
     return (path=path, gross=gross, net=net, fees=fee, risk=realized_risk(path.wealth,PS3_DT),
-        short_pnl=pnl, scaled_npv=net/target-1, success=net>target, zero_success=gross>target);
+        long_pnl=long_pnl, short_pnl=pnl, short_positions=positions,
+        scaled_npv=net/target-1, success=net>target, zero_success=gross>target);
 end
 
 """Build each table whose required student calculations are available; mark the others UNAVAILABLE."""
@@ -52,11 +64,11 @@ function finance_tables(track::AbstractString, root::AbstractString;
     data = load_experiment(root);
     issues = String[];
     tables = Dict(name=>NamedTuple[] for name in
-        ("window-inputs","allocations","observed","fees","stock-risk","short-diagnostics","probabilities","wealth-paths"));
+        ("window-inputs","allocations","observed","fees","short-positions","stock-risk","short-diagnostics","probabilities","wealth-paths"));
     timings = NamedTuple[];
     equal = fill(1/8,8);
     eq_history = report_attempt("Equal-weight 2026 evaluation",issues) do
-        historical_record(data.prices,equal);
+        historical_record(data.prices,equal,issues);
     end
     # Add one common historical reference, independent of the fitted window -
     add_history!(tables,"reference","equal_weight",eq_history,data.dates);
@@ -84,7 +96,7 @@ function finance_tables(track::AbstractString, root::AbstractString;
             push!(tables["allocations"],merge((window=window.label,portfolio=name,estimated_risk=risk,
                 short_exposure=exposure),NamedTuple{Tuple(Symbol.(data.tickers))}(Tuple(holdings))));
             history = weights===nothing ? nothing : report_attempt("$(window.label) $name 2026 evaluation",issues) do
-                historical_record(data.prices,weights);
+                historical_record(data.prices,weights,issues);
             end
             add_history!(tables,window.label,name,history,data.dates);
             if name=="shorts_allowed"
@@ -92,9 +104,16 @@ function finance_tables(track::AbstractString, root::AbstractString;
                     zero_fee_wealth=history===nothing ? missing : history.gross,
                     three_percent_wealth=history===nothing ? missing : history.net,
                     borrowing_fee=history===nothing ? missing : history.fees,
+                    long_pnl=history===nothing ? missing : history.long_pnl,
                     short_pnl=history===nothing ? missing : history.short_pnl,
                     zero_fee_success=history===nothing ? missing : history.zero_success,
                     three_percent_success=history===nothing ? missing : history.success));
+                if history!==nothing
+                    for p in history.short_positions
+                        push!(tables["short-positions"],(window=window.label,ticker=data.tickers[p.stock],
+                            amount_shorted=p.amount,price_change=p.change,gain_before_fees=p.gain));
+                    end
+                end
                 if weights!==nothing
                     report_attempt("$(window.label) short diagnostics",issues) do
                         long_weights = max.(weights,0.0);
@@ -188,6 +207,7 @@ function report_cell(x, key::Symbol)::String
     key==:portfolio && return get(PORTFOLIO_LABELS,x,string(x));
     x isa Bool && return x ? "yes" : "no";
     x isa AbstractFloat || return string(x);
+    key==:price_change && return @sprintf("%+.4f%%",100*x); # sign shows a rise or fall
     key in Symbol.(PS3_TICKERS) || key in (:weight,:short_exposure,:probability_zero,:probability_three_percent,:scaled_npv) ?
         (@sprintf("%.4f%%",100*x)) :
         key in (:se_zero,:se_three_percent) ? (@sprintf("%.4f",100*x)) :
@@ -209,7 +229,7 @@ end
 """
     print_finance_report(track, root; output_directory) -> NamedTuple
 
-Run the supplied comparison, print and save Report.md, and export eight CSV
+Run the supplied comparison, print and save Report.md, and export nine CSV
 tables. Unfinished calculations produce UNAVAILABLE rather than reference
 answers. CSV probabilities are fractions; displayed probabilities are percent.
 Monte Carlo errors are displayed in percentage points. Return tables and timing
@@ -221,6 +241,7 @@ function print_finance_report(track::AbstractString,root::AbstractString;
     t = result.tables;
     mkpath(output_directory);
     headers = Dict(
+        "short-positions"=>[:window,:ticker,:amount_shorted,:price_change,:gain_before_fees],
         "short-diagnostics"=>[:window,:ticker,:weight,:stock_risk,:correlation_with_longs],
         "probabilities"=>[:window,:portfolio,:paths,:probability_zero,:probability_three_percent,
             :se_zero,:se_three_percent,:fee_change_percentage_points,:nonpositive_gross_paths]);
@@ -246,7 +267,10 @@ function print_finance_report(track::AbstractString,root::AbstractString;
         end
     end
     markdown_table(io,"Observed results at 3% borrowing",t["observed"],[:window=>"Window",:portfolio=>"Portfolio",:realized_risk=>"Realized risk",:net_wealth=>"Net wealth",:beats_benchmark=>"Success"]);
-    markdown_table(io,"Borrowing-fee comparison",t["fees"],[:window=>"Window",:portfolio=>"Portfolio",:zero_fee_wealth=>"Wealth at 0%",:three_percent_wealth=>"Wealth at 3%",:borrowing_fee=>"Fee",:short_pnl=>"Short gains before fees",:zero_fee_success=>"Success at 0%",:three_percent_success=>"Success at 3%"]);
+    markdown_table(io,"Borrowing-fee comparison",t["fees"],[:window=>"Window",:portfolio=>"Portfolio",:zero_fee_wealth=>"Wealth at 0%",:three_percent_wealth=>"Wealth at 3%",:borrowing_fee=>"Fee",:long_pnl=>"Long gains before fees",:short_pnl=>"Short gains before fees",:zero_fee_success=>"Success at 0%",:three_percent_success=>"Success at 3%"]);
+    println(io,"\nLong and short gains before fees add up to the change in gross wealth from USD 10,000.");
+    markdown_table(io,"Short positions in 2026",t["short-positions"],[:window=>"Window",:ticker=>"Stock",:amount_shorted=>"Amount shorted",:price_change=>"Price change",:gain_before_fees=>"Gain before fees"]);
+    println(io,"\nAmount shorted is the initial value of the shares owed. Price change runs from December 31, 2025 to July 6, 2026. A short gains when its price falls and loses when its price rises.");
     markdown_table(io,"Individual-stock risk",t["stock-risk"],[:window=>"Window",:ticker=>"Stock",:risk=>"Estimated risk"]);
     markdown_table(io,"Short-position diagnostics",t["short-diagnostics"],[:window=>"Window",:ticker=>"Stock",:weight=>"Weight",:stock_risk=>"Stock risk",:correlation_with_longs=>"Correlation with combined longs"]);
     println(io,"\nCorrelation with combined longs compares the shorted stock's growth rates with the growth rate of the portfolio's long positions. Both use the estimation window. The long positions keep their initial weights, rescaled to sum to one.");

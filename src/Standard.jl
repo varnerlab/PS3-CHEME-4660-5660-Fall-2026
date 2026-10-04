@@ -1,5 +1,5 @@
 # PS3 Standard: complete the four functions below.
-# The report calls each function once for each estimation window.
+# The report reuses these functions for both estimation windows.
 # Keep the function names, arguments, return types, and docstrings.
 # Replace each error("Complete ...") expression with your calculation.
 # The setup lines, return statements, and solver roundoff cleanup are supplied.
@@ -15,8 +15,8 @@
 # that show the Julia code, the L5b and L6a lecture slides that explain the
 # calculation, and the matching slide in the PS3 mathematical companion
 # (docs/PS3-Mathematical-Companion.pdf). README.md links all of them.
-# The examples wrap each calculation in a let ... end block. Copy the lines
-# inside the block and rename variables to match this file.
+# Some example cells wrap their calculation in a let ... end block. Copy only
+# the lines you need and rename variables to match this file.
 
 """
     estimate_inputs(dataset::Dict{String,DataFrame}, my_list_of_tickers::Array{String,1};
@@ -151,7 +151,8 @@ function minimum_variance_weights(ĝ::Array{Float64,1}, Σ̂_g::Array{Float64,2}
 
         # TODO 4: Solve problem and extract the optimal weights.
         # Hint: solve(...) returns a dictionary; solution["argmax"] holds w.
-        # The example cell after "Add long-only bounds" shows both lines.
+        # Under "Add long-only bounds", the code cell after the build(...) cell
+        # shows both lines.
         solution = error("Complete minimum_variance_weights: solve problem.");
         w = error("Complete minimum_variance_weights: extract w.");
 
@@ -231,8 +232,9 @@ Calculate the total borrowing fee on the short positions over the holding period
 - `prices`: Share prices (USD/share) from day 0 through the sale day. Rows
   are trading days and columns are stocks.
 - `shares`: Signed, fixed share counts from `portfolio_path`.
-- `annual_rate`: Annual borrowing rate as a fraction. The report calls this
-  function once with `0.0` and once with `0.03`.
+- `annual_rate`: Annual borrowing rate as a fraction, for example `0.03`
+  for 3%. A rate of `0.0` gives no fee, so the report uses gross wealth for
+  its 0% results.
 - `Δt`: Length of one trading interval in years.
 
 ### Returns

@@ -50,8 +50,10 @@ greatest net wealth, and compare them with the equal-weight reference.
 its borrowing fee and its 0% result. Decide whether the fee or the different
 holdings explain most of its wealth difference from the long-only portfolio.
 
-**c. Explain the short positions.** Explain how a short position can lose
-money while still helping to reduce portfolio fluctuations.
+**c. Explain the short positions.** For one shorts-allowed portfolio, cite
+its long and short gains before fees and one shorted stock's 2026 price
+change. Explain how a short position can lose money while still helping
+to reduce portfolio fluctuations.
 
 <!-- answer-2:start -->
 TODO: Answer parts a–c.
@@ -70,22 +72,26 @@ the change in success probability from 0% to 3% fees, in percentage points.
 Explain why this change cannot be positive when the holdings and simulated
 price paths are unchanged.
 
-**c. Compare the two models.** When you compare predictions across windows,
-separate changes in the portfolio weights from changes in the fitted model.
-Explain why the equal-weight portfolio can have different success
-probabilities under the two models even though its holdings do not change.
+**c. Compare the two models.** The report evaluates each window's GMV
+portfolios only under that window's model, so comparing an optimized
+portfolio across windows changes both its weights and the model. The
+equal-weight portfolio has the same holdings under both models. Cite its
+success probability under each model and explain why they differ. No
+additional simulations are required.
 
 **d. Answer the central question.** Use the observed results and the modeled
 probabilities to state whether using only 2025 prices led to a better
 portfolio and whether allowing short positions helped. Support your answer
 with two numerical comparisons. Explain one advantage and one limitation of
-using only 2025 prices. Changing the window changes both the number of
-observations and how recent they are; explain why this experiment cannot
+using only 2025 prices.
+
+**e. State the limits.** Changing the window changes both the number of
+observations and how recent they are. Explain why this experiment cannot
 separate those two effects. Explain why a small Monte Carlo standard error
 and this single observed 2026 episode cannot establish forecast accuracy.
 
 <!-- answer-3:start -->
-TODO: Answer parts a–d.
+TODO: Answer parts a–e.
 <!-- answer-3:end -->
 
 An incorrect initial prediction does not reduce your score when you explain
