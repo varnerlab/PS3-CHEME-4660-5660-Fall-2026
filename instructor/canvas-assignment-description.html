@@ -1,0 +1,177 @@
+<!--
+INSTRUCTOR-FACING CANVAS COPY
+
+Publish the tagged GitHub release before posting this description.
+Keep the inline styles: they carry the code colors and gray backgrounds into Canvas.
+
+1. Open this file in a web browser; it will render as a page.
+2. Select the rendered page (Command+A on macOS or Ctrl+A on Windows).
+3. Copy it, then paste it into the ordinary Canvas assignment description box.
+4. Preview the Canvas assignment and verify the three links before publishing.
+
+You can also paste this file's contents into the Canvas HTML editor.
+-->
+
+<h2>Problem Set 3: Does More Recent Data Lead to a Better Portfolio?</h2>
+
+<p>
+  <strong>Release:</strong> Sunday, October 4, 2026<br>
+  <strong>Initial submission deadline:</strong>
+  Sunday, October 18, 2026, at 11:59 PM ET<br>
+  <strong>Maximum score:</strong> 4 points
+</p>
+
+<p>
+  Invest USD 10,000 in eight stocks and decide how much past data to use.
+  Estimate growth rates and covariances from two windows: all 2014–2025 prices
+  and 2025 prices alone. For each window, choose a long-only and a
+  shorts-allowed global minimum-variance portfolio. Then hold all four
+  portfolios over the same 126 trading days in 2026, with borrowing rates of
+  0% and 3% on short positions, and compare them with an equal-weight
+  reference and a 5% benchmark. Advanced also fits a multiple-asset geometric
+  Brownian motion (MAGBM) model to each window and estimates each portfolio's
+  probability of beating the benchmark.
+</p>
+
+<h3>Download and instructions</h3>
+
+<ul>
+  <li>
+    <a href="https://github.com/varnerlab/PS3-CHEME-4660-5660-Fall-2026/blob/ps3-cheme-4660-5660-2026.1/README.md">
+      Read the complete PS3 instructions
+    </a>
+  </li>
+  <li>
+    <a href="https://github.com/varnerlab/PS3-CHEME-4660-5660-Fall-2026/releases/tag/ps3-cheme-4660-5660-2026.1">
+      Download the PS3 release
+    </a>
+  </li>
+  <li>
+    <a href="https://github.com/varnerlab/PS3-CHEME-4660-5660-Fall-2026/blob/ps3-cheme-4660-5660-2026.1/RUBRIC.md">
+      Read the grading rubric
+    </a>
+  </li>
+</ul>
+
+<p>
+  On the release page, scroll to <strong>Assets</strong> and select
+  <strong>Source code (zip)</strong>. Extract the archive before beginning.
+  Use Julia 1.12.7. Both price files are supplied.
+</p>
+
+<p>
+  Set <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">TRACK.txt</code> to <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">standard</code> or <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">advanced</code>.
+  Complete that track's functions in <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">src</code> and answer its three
+  questions in <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">responses</code>. Keep the supplied docstrings and answer
+  markers: the hidden <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">&lt;!-- answer-N:start --&gt;</code> and
+  <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">&lt;!-- answer-N:end --&gt;</code> comments that surround each answer
+  in the response file. Replace only the TODO line between them.
+  Put helper functions in separate files under <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">src</code> and load them
+  from <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">Include.jl</code>.
+</p>
+
+<p>
+  The starter code is incomplete, so the tests will fail until you complete
+  the functions. Leave the supplied support code, data, reports, tests, and
+  checker unchanged.
+</p>
+
+<h3>Check your work</h3>
+
+<p>
+  In VS Code, open the extracted folder containing <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">Project.toml</code>,
+  <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">README.md</code>, and <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">check_submission.jl</code>.
+  Open a terminal in that folder and run this setup command once:
+</p>
+
+<pre style="display: block; padding: 10px; margin: 0 0 10px; color: #333333; background-color: #f5f5f5; border: 1px solid #cccccc; border-radius: 4px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 13px; line-height: 1.5; white-space: pre-wrap;"><code style="color: #333333; background-color: #f5f5f5; padding: 0; font-family: inherit; font-size: inherit;">julia --project=. --startup-file=no -e 'using Pkg; Pkg.instantiate()'</code></pre>
+
+<p>
+  Before you view any allocation results, write the prediction in
+  Question 1a of your response file.
+  After saving your code, run this command to check it and generate the comparison report:
+</p>
+
+<pre style="display: block; padding: 10px; margin: 0 0 10px; color: #333333; background-color: #f5f5f5; border: 1px solid #cccccc; border-radius: 4px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 13px; line-height: 1.5; white-space: pre-wrap;"><code style="color: #333333; background-color: #f5f5f5; padding: 0; font-family: inherit; font-size: inherit;">julia --project=. --startup-file=no check_submission.jl</code></pre>
+
+<p>
+  The checker runs 20 public tests for Standard or 32 for Advanced, then
+  <strong>automatically calls your functions for both estimation windows and
+  prints the comparison report</strong>. You do not need a separate report
+  command. Use the report to answer the three questions in your selected
+  response file. Unfinished calculations show <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">UNAVAILABLE</code>;
+  save your code and rerun the command as you complete the functions.
+</p>
+
+<p>
+  Save your answers and run the same command again before submitting.
+  The checker also reports missing docstrings and unfinished answers and
+  creates <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">MANIFEST.txt</code>.
+  It does <strong>not</strong> upload anything to Canvas.
+  After you pass every test, the teaching team must review your code,
+  documentation, and answers before awarding a score of 4.
+  The team may award 3 for otherwise complete work with a minor, localized
+  coding error under the rubric's review criteria. This review is part of
+  normal grading; students do not need to request an exception.
+</p>
+
+<h3>Submit to Canvas</h3>
+
+<ol>
+  <li>
+    Zip the entire problem-set folder after running the checker, including
+    your code, answers, data, project files, checker, tests, and generated
+    <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">MANIFEST.txt</code>.
+  </li>
+  <li>
+    Rename the archive to <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">CHEME-5660-PS3-&lt;your netid&gt;.zip</code>.
+  </li>
+  <li>
+    Replace the complete <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">&lt;your netid&gt;</code>
+    placeholder, including the angle brackets, with your actual NetID.
+    For example: <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">CHEME-5660-PS3-abc123.zip</code>.
+  </li>
+  <li>Upload the ZIP file to this Canvas assignment.</li>
+</ol>
+
+<p>
+  <strong>Submit a readable ZIP with attempted work by the initial deadline,
+  even if your work is incomplete or tests fail.</strong>
+  If you cannot run the checker, submit without <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">MANIFEST.txt</code>.
+  A missing, empty, or unreadable submission receives a <strong>Frozen Zero</strong>
+  and cannot be revised for credit or earn a Magic Point.
+</p>
+
+<h3>Revisions</h3>
+
+<p>
+  After a qualifying initial submission, you may revise until
+  <strong>December 19, 2026 at 11:59 PM ET</strong>, with no limit on attempts.
+  Return to this same Canvas assignment, select <strong>New Attempt</strong>,
+  and upload the revised ZIP file.
+</p>
+
+<p>
+  Canvas may label these revisions “late.” Eligible revisions have no late
+  penalty. We keep your highest score, including across tracks.
+  To change tracks, update <code style="color: #c7254e; background-color: #f5f5f5; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, 'Courier New', monospace; font-size: 90%;">TRACK.txt</code>,
+  complete that track's files, and rerun the checker.
+  An accepted Advanced score of 4 earns <strong>one Magic Point</strong>,
+  once for PS3, including through revision.
+</p>
+
+<h3>Collaboration and academic integrity</h3>
+
+<p>
+  Submit your own work. You may discuss ideas with classmates and use course
+  materials, books, documentation, internet resources, and AI tools.
+  Do not share code or solutions. You are responsible for understanding and
+  explaining everything you submit.
+</p>
+
+<p>
+  The reference solution will be released after the initial deadline.
+  Use it to understand errors and debug your own work, but do not copy it.
+  Copying it results in a locked score of 0 for PS3. These rules also apply
+  to revisions.
+</p>
